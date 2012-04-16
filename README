@@ -1,0 +1,6 @@
+This is ChronoDraw, a short PERL script to convert a plain-text waveforms description into a shiny SVG timing diagram.
+
+ChronoDraw currently relies on the SVG PERL module to generate the output file (see http://search.cpan.org/dist/SVG/).
+
+Documentation to come soon...
+
