@@ -1,0 +1,32 @@
+#
+# Showing clock duty-cycle non-issue
+#
+
+$RATIO = 4
+[-50%:50%]
+
+# Init
+#
+Title/"" : ""
+
+CKS/"DUTY 20%" ~1@20% = 0
+CKM/"DUTY 50%" ~1@50% = 0
+CKL/"DUTY 80%" ~1@80% = 0
+
+|
+Title  = "Clock Timing Constraints"
+Title  \<Title+1>" period >= t1 "
+
+CKS  /<CKS+1>" high >= t2 "
+CKM  /<CKM+1>" high >= t2 "
+CKL  /<CKL+1>" high >= t2 "
+
+.
+
+CKS  /<CKS+1>" low >= t2 "
+CKM  /<CKM+1>" low >= t2 "
+CKL  /<CKL+1>" low >= t2 "
+
+|
+Title = ""
+

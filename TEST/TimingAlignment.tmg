@@ -1,0 +1,65 @@
+#
+# Test pattern to check all the possible timing relations / text alignments
+#
+
+$RATIO = 2
+[-100%:100%]
+
+# Init
+#
+Title/"" : "Timing Arrows / Text Alignment"
+
+Sn/"" = 0
+Sl/"" = 0
+Sb/"" = 0
+Sr/"" = 0
+Se/"" = 0
+Sc/"" = 0
+
+# First Transition
+#
+.
+Sn = 1
+Sl = 1
+Sr = 1
+Sb = 1
+Se = 1
+Sc = 1
+
+# Second Transition
+#
+.
+Sn = 0
+Sl = 0
+Sr = 0
+Sb = 0
+Se = 0
+Sc = 0
+
+# Now draw a lot of timing relations
+
+Sn ///-Sn-1-"<left"
+Sn  //-Sn-1-"center"
+Sn   /-Sn-1-"right>"
+
+Sl ///<Sl-1-"<left"
+Sl  //<Sl-1-"center"
+Sl   /<Sl-1-"right>"
+
+Sr ///-Sr-1>"<left"
+Sr  //-Sr-1>"center"
+Sr   /-Sr-1>"right>"
+
+Sb ///<Sb-1>"<left"
+Sb  //<Sb-1>"center"
+Sb   /<Sb-1>"right>"
+
+Se ///>Se-1<"<left"
+Se  //>Se-1<"center"
+Se   />Se-1<"right>"
+
+Sc ////-Sc-1>"center"
+Sc  ///-Sc-1-"center"
+Sc   //<Sc-1-"center"
+Sc    />Sc-1<"center"
+

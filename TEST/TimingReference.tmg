@@ -1,0 +1,86 @@
+#
+# Test pattern to exercize timing references
+#
+
+## SIG = V /-ref>""
+## SIG = V /-ref+offset>""
+## SIG = V /-ref-offset>""
+## SIG = V /-ref@tag+offset>""
+## SIG = V /-ref@tag-offset>""
+## 
+## SIG/tag = V
+## SIG/tag = V/-ref>""
+## SIG/tag = V/-ref>""
+## SIG/tag = V/
+## 
+## SIG        /-ref>""
+## SIG-offset /-ref>""
+## 
+## 
+## CLK	   /-ref>""
+## CLK+offset /-ref>""
+## CLK-offset /-ref>""
+
+$RATIO = 2
+[-100%:100%]
+
+# Init
+#
+Title/"" : ""
+
+CLK1~1@50% = 0+20%
+CLK2~2@50% = 0+40%
+CLK3~3@50% = 0+60%
+CLK4~3@50% = 0+80%
+
+REFU/"REF" = Z
+SIG        = Z
+REFD/"REF" = Z
+
+#
+|
+Title = "Timing References"
+
+CLK1 ////-CLK1+1>"<bwd ref (1 ph) v1"
+
+CLK1 /-Title>"<20%"
+CLK2 /-Title>"40%"
+CLK3 /-Title>"60%"
+CLK4 /-Title>"80%"
+
+REFU/R1 = "R1"+20%
+SIG/S1  = "S1"+10% ///-Title>""
+REFD/R1 = "R1"+20%
+
+#
+!
+CLK1  ///<CLK1-1-"<bwd ref (1 ph) v2"
+CLK1-1 //-CLK1>"<bwd ref (1 ph) v3"
+
+REFU/R2 = "R2"+30% //-REFU-1>"<evt: R1 to R2 (REFU-1)"
+REFU                /-REFU-1>"<rel: R1 to R2 (REFU-1)"
+REFD/R2 = "R2"+30%
+
+SIG/S2  = "S2"+50%
+
+#
+!
+REFU/R3 = "R3"+70%
+SIG/S3  = "S3"+40%
+REFD/R3 = "R3"+70%
+
+#
+!
+REFU/R4 = "R4"+10%
+SIG/S4  = "S4"+40%  //-REFU@R2>"<tag: R2 to S4"
+SIG                ///-REFU@R2+1>"<tag: R2+1 to S4"
+SIG                  /-REFU@R2-1>"<tag: R2-1 to S4"
+
+SIG-1                \-REFD@R2-1>"<tag: R2-1 to S4-1"
+SIG-1               \\-REFD@R2>"<tag: R2 to S4-1"
+SIG-1              \\\-REFD@R2+1>"<tag: R2+1 to S4-1"
+
+REFD/R4 = "R4"+10%
+
+# Done
+|

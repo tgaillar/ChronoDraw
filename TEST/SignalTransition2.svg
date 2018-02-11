@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg height="700" width="430" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<filter filterUnits="objectBoundingBox" height="100%" id="bgText" width="100%" x="0%" y="0%">
+		<feFlood flood-color="#FFFFFF" result="bg" />
+		<feMerge >
+			<feMergeNode in="bg" />
+			<feMergeNode in="SourceGraphic" />
+		</feMerge>
+	</filter>
+	<polygon points="0,0,430,0,430,700,0,700" style="stroke-linejoin: round; stroke-dashoffset: 0; stroke-width: 0; stroke-linecap: round; stroke: none; stroke-dasharray: none; stroke-miterlimit: 0; fill: #FFFFFF" />
+	<polyline points="150,70,150,699.5" style="stroke-miterlimit: 1; stroke-dasharray: none; stroke: #000000; fill: none; stroke-linejoin: round; stroke-linecap: round; stroke-width: 1; stroke-dashoffset: 0" />
+	<polyline points="290,70,290,699.5" style="stroke: #000000; stroke-dasharray: none; stroke-miterlimit: 1; fill: none; stroke-linejoin: round; stroke-dashoffset: 0; stroke-width: 1; stroke-linecap: round" />
+	<text style="text-anchor: end; font-family: Impact; font-size: 30" x="5.55111512312578e-15" y="45"></text>
+	<text style="text-anchor: middle; font-family: Impact; font-size: 20" x="220" y="41.6666666666667">Signal Break Transition</text>
+	<text style="font-size: 30; font-family: Impact; text-anchor: end" x="5.55111512312578e-15" y="115"></text>
+	<polyline points="150,126,290,126" style="stroke-linejoin: round; stroke-linecap: round; stroke-width: 3; stroke-dashoffset: 0; stroke-dasharray: none; stroke: #000000; stroke-miterlimit: 3; fill: none" />
+	<text style="text-anchor: end; font-size: 30; font-family: Impact" x="5.55111512312578e-15" y="185"></text>
+	<polyline points="150,154,290,154" style="stroke-linejoin: round; stroke-dashoffset: 0; stroke-width: 3; stroke-linecap: round; stroke-miterlimit: 3; stroke: #000000; stroke-dasharray: none; fill: none" />
+	<text style="text-anchor: end; font-family: Impact; font-size: 30" x="5.55111512312578e-15" y="255"></text>
+	<polyline points="150,224,290,224" style="stroke-width: 3; stroke-linecap: round; stroke-dashoffset: 0; stroke-linejoin: round; fill: none; stroke-miterlimit: 3; stroke-dasharray: 3, 6; stroke: #000000" />
+	<text style="font-family: Impact; font-size: 30; text-anchor: end" x="5.55111512312578e-15" y="325"></text>
+	<polygon points="157,294,150,315,157,336,283,336,290,315,283,294,157,294" style="stroke-linejoin: round; stroke-width: 3; stroke-linecap: round; stroke-dashoffset: 0; stroke-miterlimit: 3; stroke-dasharray: none; stroke: #000000; fill: #FFFFFF" />
+	<text style="text-anchor: end; font-family: Impact; font-size: 30" x="5.55111512312578e-15" y="395"></text>
+	<polygon points="157,364,150,385,157,406,283,406,290,385,283,364,157,364" style="fill: #D3D3D3; stroke: #000000; stroke-dasharray: none; stroke-miterlimit: 3; stroke-dashoffset: 0; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round" />
+	<text style="font-size: 30; font-family: Impact; text-anchor: end" x="5.55111512312578e-15" y="465"></text>
+	<polygon points="157,434,150,455,157,476,283,476,290,455,283,434,157,434" style="stroke: #000000; stroke-dasharray: 3, 6; stroke-miterlimit: 3; fill: #D3D3D3; stroke-linejoin: round; stroke-dashoffset: 0; stroke-width: 3; stroke-linecap: round" />
+	<text style="font-size: 30; font-family: Impact; text-anchor: end" x="5.55111512312578e-15" y="535"></text>
+	<polyline points="150,525,290,525" style="fill: none; stroke-miterlimit: 3; stroke-dasharray: 3, 6; stroke: #000000; stroke-width: 3; stroke-linecap: round; stroke-dashoffset: 0; stroke-linejoin: round" />
+	<text style="text-anchor: end; font-size: 30; font-family: Impact" x="5.55111512312578e-15" y="605"></text>
+	<polyline points="150,616,290,616" style="stroke-width: 3; stroke-linecap: round; stroke-dashoffset: 0; stroke-linejoin: round; fill: none; stroke-dasharray: 3, 6; stroke: #000000; stroke-miterlimit: 3" />
+	<text style="text-anchor: end; font-family: Impact; font-size: 30" x="5.55111512312578e-15" y="675"></text>
+	<polyline points="150,686,290,686" style="stroke: #000000; stroke-dasharray: none; stroke-miterlimit: 3; fill: none; stroke-linejoin: round; stroke-dashoffset: 0; stroke-linecap: round; stroke-width: 3" />
+	<!-- 
+	Generated using the Perl SVG Module V2.50
+	by Ronan Oger
+	Info: http://www.roitsystems.com/
+ -->
+</svg>

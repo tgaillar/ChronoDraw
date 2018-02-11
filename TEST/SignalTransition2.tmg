@@ -1,0 +1,48 @@
+#
+# Test pattern to check all possible signal break transitions
+#
+
+$RATIO = 2
+[-100%:100%]
+
+# Init
+#
+Title/"" : "Signal Break Transition"
+
+Sc/""~2@50% =
+S1/"" = 
+SH/"" = 
+ST/"" = 
+SX/"" = 
+SW/"" = 
+SZ/"" = 
+SL/"" = 
+S0/"" = 
+
+# First Transition
+#
+!
+Sc = 0
+S1 = 1
+SH = H
+ST = ""
+SX = X
+SW = W
+SZ = Z
+SL = L
+S0 = 0
+
+# Second Transition
+#
+!
+
+Sc =
+S1 = 
+SH = 
+ST = 
+SX = 
+SW = 
+SZ = 
+SL = 
+S0 = 
+

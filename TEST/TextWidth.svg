@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg height="350" width="756.388746418338" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<filter filterUnits="objectBoundingBox" height="100%" id="bgText" width="100%" x="0%" y="0%">
+		<feFlood flood-color="#FFFFFF" result="bg" />
+		<feMerge >
+			<feMergeNode in="bg" />
+			<feMergeNode in="SourceGraphic" />
+		</feMerge>
+	</filter>
+	<polygon points="0,0,756.388746418338,0,756.388746418338,350,0,350" style="stroke: none; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: none; fill: #FFFFFF; stroke-width: 0; stroke-dashoffset: 0; stroke-miterlimit: 0" />
+	<polyline points="56.7637464183381,63,756.013746418338,63" style="fill: none; stroke-dasharray: none; stroke-width: 0.75; stroke-miterlimit: 0.75; stroke-dashoffset: 0; stroke: #D3D3D3; stroke-linecap: round; stroke-linejoin: round" />
+	<polyline points="56.3887464183381,56,56.3887464183381,101.5" style="stroke: #000000; stroke-linejoin: round; stroke-linecap: round; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 1" />
+	<polyline points="756.388746418338,56,756.388746418338,101.5" style="stroke-width: 1; fill: none; stroke-dasharray: none; stroke-miterlimit: 1; stroke-dashoffset: 0; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polyline points="57.3887464183381,87.5,755.388746418338,87.5" style="stroke: #000000; stroke-linejoin: round; stroke-linecap: round; stroke-width: 1; stroke-dasharray: none; fill: none; stroke-miterlimit: 1; stroke-dashoffset: 0" />
+	<polygon points="57.3887464183381,87.5,63.3887464183381,91,63.3887464183381,84" style="stroke-dashoffset: 0; stroke-miterlimit: 1; fill: #000000; stroke-dasharray: none; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polygon points="755.388746418338,87.5,749.388746418338,91,749.388746418338,84" style="fill: #000000; stroke-dasharray: none; stroke-width: 1; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linecap: round; stroke-linejoin: round" />
+	<polygon points="401.86236492018,77.5,410.915127916496,77.5,410.915127916496,97.5,401.86236492018,97.5" style="stroke-dashoffset: 0; stroke-miterlimit: 0; stroke-dasharray: none; fill: #FFFFFF; stroke-width: 0; stroke-linecap: round; stroke-linejoin: round; stroke: none" />
+	<text style="font-size: 20; font-family: Impact; text-anchor: middle" x="406.388746418338" y="94.1666666666667">e</text>
+	<polyline points="56.3887464183381,56,56.3887464183381,136.5" style="stroke-width: 1; fill: none; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polyline points="756.388746418338,56,756.388746418338,136.5" style="stroke-width: 1; stroke-dasharray: none; fill: none; stroke-miterlimit: 1; stroke-dashoffset: 0; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polyline points="57.3887464183381,122.5,755.388746418338,122.5" style="stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 1" />
+	<polygon points="57.3887464183381,122.5,63.3887464183381,126,63.3887464183381,119" style="stroke: #000000; stroke-linejoin: round; stroke-linecap: round; fill: #000000; stroke-dasharray: none; stroke-width: 1; stroke-miterlimit: 1; stroke-dashoffset: 0" />
+	<polygon points="755.388746418338,122.5,749.388746418338,126,749.388746418338,119" style="stroke-linecap: round; stroke-linejoin: round; stroke: #000000; stroke-miterlimit: 1; stroke-dashoffset: 0; stroke-width: 1; fill: #000000; stroke-dasharray: none" />
+	<polygon points="396.745172943103,112.5,416.032319893574,112.5,416.032319893574,132.5,396.745172943103,132.5" style="stroke-linecap: round; stroke-linejoin: round; stroke: none; stroke-miterlimit: 0; stroke-dashoffset: 0; stroke-width: 0; fill: #FFFFFF; stroke-dasharray: none" />
+	<text style="font-size: 20; font-family: Impact; text-anchor: middle" x="406.388746418338" y="129.166666666667">ee</text>
+	<polyline points="56.3887464183381,56,56.3887464183381,171.5" style="stroke-miterlimit: 1; stroke-dashoffset: 0; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polyline points="756.388746418338,56,756.388746418338,171.5" style="stroke-linejoin: round; stroke-linecap: round; stroke: #000000; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; fill: none; stroke-dasharray: none" />
+	<polyline points="57.3887464183381,157.5,755.388746418338,157.5" style="stroke-dasharray: none; fill: none; stroke-width: 1; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linecap: round; stroke-linejoin: round" />
+	<polygon points="57.3887464183381,157.5,63.3887464183381,161,63.3887464183381,154" style="stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; stroke-dasharray: none; fill: #000000; stroke-linejoin: round; stroke-linecap: round; stroke: #000000" />
+	<polygon points="755.388746418338,157.5,749.388746418338,161,749.388746418338,154" style="stroke-dasharray: none; fill: #000000; stroke-width: 1; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polygon points="386.510788988948,147.5,426.266703847728,147.5,426.266703847728,167.5,386.510788988948,167.5" style="stroke-width: 0; fill: #FFFFFF; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 0; stroke: none; stroke-linecap: round; stroke-linejoin: round" />
+	<text style="text-anchor: middle; font-family: Impact; font-size: 20" x="406.388746418338" y="164.166666666667">eeee</text>
+	<polyline points="56.3887464183381,56,56.3887464183381,206.5" style="stroke-linejoin: round; stroke-linecap: round; stroke: #000000; stroke-miterlimit: 1; stroke-dashoffset: 0; fill: none; stroke-dasharray: none; stroke-width: 1" />
+	<polyline points="756.388746418338,56,756.388746418338,206.5" style="stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polyline points="57.3887464183381,192.5,755.388746418338,192.5" style="stroke-width: 1; fill: none; stroke-dasharray: none; stroke-miterlimit: 1; stroke-dashoffset: 0; stroke: #000000; stroke-linecap: round; stroke-linejoin: round" />
+	<polygon points="57.3887464183381,192.5,63.3887464183381,196,63.3887464183381,189" style="stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: none; fill: #000000; stroke-width: 1; stroke-dashoffset: 0; stroke-miterlimit: 1" />
+	<polygon points="755.388746418338,192.5,749.388746418338,196,749.388746418338,189" style="stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; fill: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polygon points="366.042021080639,182.5,446.735471756038,182.5,446.735471756038,202.5,366.042021080639,202.5" style="stroke: none; stroke-linecap: round; stroke-linejoin: round; fill: #FFFFFF; stroke-dasharray: none; stroke-width: 0; stroke-dashoffset: 0; stroke-miterlimit: 0" />
+	<text style="text-anchor: middle; font-size: 20; font-family: Impact" x="406.388746418338" y="199.166666666667">eeeeeeee</text>
+	<polyline points="56.3887464183381,56,56.3887464183381,241.5" style="stroke-linejoin: round; stroke-linecap: round; stroke: #000000; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; stroke-dasharray: none; fill: none" />
+	<polyline points="756.388746418338,56,756.388746418338,241.5" style="stroke-dasharray: none; fill: none; stroke-width: 1; stroke-miterlimit: 1; stroke-dashoffset: 0; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polyline points="57.3887464183381,227.5,755.388746418338,227.5" style="stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polygon points="57.3887464183381,227.5,63.3887464183381,231,63.3887464183381,224" style="stroke-linejoin: round; stroke-linecap: round; stroke: #000000; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; fill: #000000; stroke-dasharray: none" />
+	<polygon points="755.388746418338,227.5,749.388746418338,231,749.388746418338,224" style="stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; fill: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polygon points="325.10448526402,217.5,487.673007572657,217.5,487.673007572657,237.5,325.10448526402,237.5" style="stroke: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 0; fill: #FFFFFF; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 0" />
+	<text style="font-family: Impact; font-size: 20; text-anchor: middle" x="406.388746418338" y="234.166666666667">eeeeeeeeeeeeeeee</text>
+	<polyline points="56.3887464183381,56,56.3887464183381,276.5" style="stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 1" />
+	<polyline points="756.388746418338,56,756.388746418338,276.5" style="stroke-width: 1; stroke-dasharray: none; fill: none; stroke-miterlimit: 1; stroke-dashoffset: 0; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polyline points="57.3887464183381,262.5,755.388746418338,262.5" style="stroke-width: 1; stroke-dasharray: none; fill: none; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polygon points="57.3887464183381,262.5,63.3887464183381,266,63.3887464183381,259" style="stroke-linecap: round; stroke-linejoin: round; stroke: #000000; stroke-dashoffset: 0; stroke-miterlimit: 1; fill: #000000; stroke-dasharray: none; stroke-width: 1" />
+	<polygon points="755.388746418338,262.5,749.388746418338,266,749.388746418338,259" style="stroke-width: 1; stroke-dasharray: none; fill: #000000; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linecap: round; stroke-linejoin: round" />
+	<polygon points="243.229413630782,252.5,569.548079205895,252.5,569.548079205895,272.5,243.229413630782,272.5" style="stroke-miterlimit: 0; stroke-dashoffset: 0; stroke-width: 0; stroke-dasharray: none; fill: #FFFFFF; stroke-linejoin: round; stroke-linecap: round; stroke: none" />
+	<text style="text-anchor: middle; font-size: 20; font-family: Impact" x="406.388746418338" y="269.166666666667">eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee</text>
+	<polyline points="56.3887464183381,56,56.3887464183381,311.5" style="stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: none; fill: none; stroke-width: 1; stroke-miterlimit: 1; stroke-dashoffset: 0" />
+	<polyline points="756.388746418338,56,756.388746418338,311.5" style="stroke-linecap: round; stroke-linejoin: round; stroke: #000000; stroke-miterlimit: 1; stroke-dashoffset: 0; fill: none; stroke-dasharray: none; stroke-width: 1" />
+	<polyline points="57.3887464183381,297.5,755.388746418338,297.5" style="stroke-dasharray: none; fill: none; stroke-width: 1; stroke-miterlimit: 1; stroke-dashoffset: 0; stroke: #000000; stroke-linecap: round; stroke-linejoin: round" />
+	<polygon points="57.3887464183381,297.5,63.3887464183381,301,63.3887464183381,294" style="stroke-dashoffset: 0; stroke-miterlimit: 1; fill: #000000; stroke-dasharray: none; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polygon points="755.388746418338,297.5,749.388746418338,301,749.388746418338,294" style="stroke-width: 1; fill: #000000; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polygon points="286.471554441261,287.5,526.305938395416,287.5,526.305938395416,307.5,286.471554441261,307.5" style="stroke-width: 0; stroke-dasharray: none; fill: #FFFFFF; stroke-miterlimit: 0; stroke-dashoffset: 0; stroke: none; stroke-linejoin: round; stroke-linecap: round" />
+	<text style="font-family: Impact; font-size: 20; text-anchor: middle" x="406.388746418338" y="304.166666666667">abcdefghijklmnopqrstuvwxyz</text>
+	<polyline points="56.3887464183381,56,56.3887464183381,346.5" style="stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-dashoffset: 0; stroke-miterlimit: 1" />
+	<polyline points="756.388746418338,56,756.388746418338,346.5" style="stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-width: 1; fill: none; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polyline points="57.3887464183381,332.5,755.388746418338,332.5" style="stroke-linecap: round; stroke-linejoin: round; stroke: #000000; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-dasharray: none; fill: none; stroke-width: 1" />
+	<polygon points="57.3887464183381,332.5,63.3887464183381,336,63.3887464183381,329" style="fill: #000000; stroke-dasharray: none; stroke-width: 1; stroke-dashoffset: 0; stroke-miterlimit: 1; stroke: #000000; stroke-linejoin: round; stroke-linecap: round" />
+	<polygon points="755.388746418338,332.5,749.388746418338,336,749.388746418338,329" style="stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1; stroke-dasharray: none; fill: #000000; stroke-miterlimit: 1; stroke-dashoffset: 0" />
+	<polygon points="79.4792703643058,322.5,733.29822247237,322.5,733.29822247237,342.5,79.4792703643058,342.5" style="stroke-linejoin: round; stroke-linecap: round; stroke: none; stroke-dashoffset: 0; stroke-miterlimit: 0; stroke-width: 0; stroke-dasharray: none; fill: #FFFFFF" />
+	<text style="font-family: Impact; font-size: 20; text-anchor: middle" x="406.388746418338" y="339.166666666667">eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee</text>
+	<text style="font-family: Impact; font-size: 30; text-anchor: end" x="46.3887464183381" y="45">CLK</text>
+	<polyline points="57.8887464183381,34.1,91.3887464183381,14,371.388746418338,14" style="stroke-dashoffset: 0; stroke-miterlimit: 3; stroke-width: 3; stroke-dasharray: none; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: #000000" />
+	<polyline points="371.388746418338,14,441.388746418338,56,721.388746418338,56" style="fill: none; stroke-dasharray: none; stroke-width: 3; stroke-dashoffset: 0; stroke-miterlimit: 3; stroke: #000000; stroke-linecap: round; stroke-linejoin: round" />
+	<polyline points="721.388746418338,56,754.888746418338,35.9" style="stroke-miterlimit: 3; stroke-dashoffset: 0; fill: none; stroke-dasharray: none; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; stroke: #000000" />
+	<polyline points="56.8887464183381,35,91.3887464183381,35" style="stroke-dashoffset: 0; stroke-miterlimit: 1; fill: none; stroke-dasharray: none; stroke-width: 1; stroke-linejoin: round; stroke-linecap: round; stroke: #000000" />
+	<polyline points="721.388746418338,35,755.888746418338,35" style="stroke-dashoffset: 0; stroke-miterlimit: 1; stroke-dasharray: none; fill: none; stroke-width: 1; stroke-linejoin: round; stroke-linecap: round; stroke: #000000" />
+	<!-- 
+	Generated using the Perl SVG Module V2.50
+	by Ronan Oger
+	Info: http://www.roitsystems.com/
+ -->
+</svg>

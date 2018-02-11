@@ -10,7 +10,7 @@ eval 'exec perl -x $0 ${1+"$@"}; echo "ERROR, failed to launch PERL script $0" 1
   if 0;
 
 #
-# Copyright 2010-2012 Thibaud GAILLARD (thibaud dot gaillard at gmail dot com)
+# Copyright 2010-2018 Thibaud GAILLARD (thibaud dot gaillard at gmail dot com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,15 +30,31 @@ eval 'exec perl -x $0 ${1+"$@"}; echo "ERROR, failed to launch PERL script $0" 1
 # (SVG.pm not installed as a default)
 #
 BEGIN {
-  my ($spath, $sfile) = ($0 =~ /^([^\/]*)\/(.*)$/);
-#  printf ("#DEBUG# path   = %s\n#DEBUG# script = %s\n", $path, $script);
+  my ($spath, $sfile) = ($0 =~ /^(.*)\/([^\/]*)$/);
+#  printf ("#DEBUG# path   = %s\n#DEBUG# script = %s\n", $spath, $sfile);
   if ((-r "$spath/SVG.pm") && (-d "$spath/SVG")) {
-    push @INC , '$spath/';
-    push @INC , '$spath/SVG';
+    push @INC , "$spath/";
+    push @INC , "$spath/SVG";
+  }
+  elsif ((-r "$spath/SVG/SVG.pm") && (-d "$spath/SVG/SVG")) {
+    push @INC , "$spath/SVG/";
+    push @INC , "$spath/SVG/SVG";
+  }
+  elsif ((-r "$spath/SVG/lib/SVG.pm") && (-d "$spath/SVG/lib/SVG")) {
+    push @INC , "$spath/SVG/lib";
+    push @INC , "$spath/SVG/lib/SVG";
   }
   elsif ((-r "./SVG.pm") && (-d "./SVG")) {
-    push @INC , './';
-    push @INC , './SVG';
+    push @INC , "./";
+    push @INC , "./SVG";
+  }
+  elsif ((-r "./SVG/SVG.pm") && (-d "./SVG/SVG")) {
+    push @INC , "./SVG/";
+    push @INC , "./SVG/SVG";
+  }
+  elsif ((-r "./SVG/lib/SVG.pm") && (-d "./SVG/lib/SVG")) {
+    push @INC , "./SVG/lib";
+    push @INC , "./SVG/lib/SVG";
   }
 }
 
@@ -55,8 +71,12 @@ use Class::Struct;
 # Get support from SVG
 use SVG (indent => "  ");
 
-# Get support from "switch"-like directive
+
+# Get support from "switch"-like directive...
 use feature "switch";
+no if ($] >= 5.018), 'warnings' => 'experimental';
+# ...without the warnings that emerged in 5.18 onwards
+##use experimental qw(smartmatch);
 
 # Global variables
 my $warning = 0;
@@ -107,9 +127,11 @@ my $HIATUSH = $SIGNALH*(1-2*$HM); # hiatus overall height
 my $HIATUSO = $HIATUSW*0.75;      # hiatus text offset from center (before blending)
 my @HIATUSB = (1, 2);             # hiatus length blending parameters (ratio, unratio)
 
+my $re_ss_dash = '^[LZHW].';
+
 my $re_color = '^#[0-Aa-fA-F]{6}$';
 my $WHITE  = "#FFFFFF"; # Full White
-my $GRAY   = "#D3D3D3"; # Light Gray 
+my $GRAY   = "#D3D3D3"; # Light Gray
 my $BLACK  = "#000000"; # Full Black
 my $RED    = "#FF0000"; # Full Red
 my $GREEN  = "#00FF00"; # Full Green
@@ -137,10 +159,11 @@ struct (TIMING => [
 
 struct (SIGNAL => [
   name   => '$', # string
-  lvalue => '$', # string
-  ltime  => '$', # real
+  value  => '$', # string
+  time   => '$', # real
   offset => '$', # real (in %)
-  clock  => '$', # integer (# phases per cycle if non null)
+  pvalue => '$', # string
+  clock  => '$', # integer (# phases per cycle if positive)
   duty   => '$', # real (in %)
   noline => '$', # boolean
   logic  => '$', # logic (init)
@@ -157,14 +180,17 @@ struct (SIGNAL => [
 struct (WAVE => [
   cycle  => '$', # integer
   time   => '$', # real
+  jitter => '$', # string
   value  => '$', # char/string
   logic  => '$', # boolean
   align  => '$', # integer (-1/left, 0/center, +1/right)
   timref => '@', # -> @TIMREF
+  timtag => '$', # boolean (show a timref tag mark)
 ]);
 
 struct (TIMREF => [
   sigref  => '$', # string
+  evtref  => '$', # integer
   offref  => '$', # integer
   tagref  => '$', # string
   text    => '$', # string
@@ -182,27 +208,46 @@ struct (HIATUS => [
 struct (WAVEPT => [
   s    => '$', # char
   v    => '$', # string
+  j    => '$', # string
   a    => '$', # (-1, 0, 1)
   #
   plpt => '@', # polyline/polygon point list (x,y)
+  xlpt => '@', # polyline/polygon point list (x,y)
   ltpt => '@', # left  text point (x,y)
   rtpt => '@', # right text point (x,y)
 ]);
 
-my %VARIABLE = (
-  dpi	 => \$DPI,
-  scale	 => \$SCALE,
-  margin => \$MARGIN,
-  ratio  => \$RATIO,
-  width  => \$WIDTH,
-  height => \$HEIGHT,
-  sigrow => \$SIGROW,
-  cycle  => \$CYCLE,
+# Negated clock hash
+my %CLOCKN = (
+  '0' => '1',
+  '1' => '0',
+  'L' => 'H',
+  'H' => 'L',
+);
 
-  fszsn  => \$FSIZES,
-  fszsv  => \$FSIZEV,
-  fsztr  => \$FSIZET,
-  dsvg   => \$DSVG,
+# Low clock boolean hash
+my %CLOCKL = (
+  '0' => 1,
+  '1' => 0,
+  'L' => 1,
+  'H' => 0,
+);
+
+# Command-line/User-code accessible variables
+my %VARIABLE = (
+  dpi	 => \$DPI,	# Dot per inch
+  scale	 => \$SCALE,	# Scale
+  margin => \$MARGIN,	# Signal name left margin
+  ratio  => \$RATIO,	# Cycle / Interline ratio (h/v)
+  width  => \$WIDTH,	# Overall diagram width
+  height => \$HEIGHT,	# Overall diagram height
+  sigrow => \$SIGROW,	# Interline height
+  cycle  => \$CYCLE,	# Cycle width
+
+  fszsn  => \$FSIZES,	# Font size for signal names
+  fszsv  => \$FSIZEV,	# Font size for signal text value
+  fsztr  => \$FSIZET,	# Font size for timing reference text
+  dsvg   => \$DSVG,	# Debug SVG (within drawing)
 );
 my %VARLINESET;
 
@@ -270,7 +315,7 @@ sub TextWidth ($@) {
     push (@width, $w);
     $width += $w;
   }
-  
+
   debug ("    - width = [\"%s\"]", join ("\", \"", @width));
 
   if ($fsize <= 0) {
@@ -289,12 +334,15 @@ sub TextWidth ($@) {
 #
 my $reSIGname   = '(\w+)';
 my $reSIGtext   = '(?:\s*/"([^"]*)")?';
-my $reSIGclock  = '(?:\s*~(\d+)(?:@(\d+)%)?)?'; # ($phases, $dutcyc)
-my $reSIGvalue  = '(?:([01XLHZ])|"(<?)([^>"]*)(>?)")'; # ($logicval, $ltvjust, $textval, $rtvjust)
+my $reSIGclocki = '(?:\s*~(\d+)(?:@(\d+)%)?)?'; # ($phases, $dutcyc)
+my $reSIGclocke = '(?:\s*(~)(\d+)?(?:@(\d+)%)?)?'; # ($phases, $dutcyc)
+my $reSIGvalue  = '(?:([01XZLHW])|"(<?)([^>"]*)(>?)")'; # ($logicval, $ltvjust, $textval, $rtvjust)
 my $reSIGoffset = '(?:\s*([-+]\d+(?:[.]\d+)?)%)?'; # ($offset)
+my $reSIGjitter = '(?:\s*:(?:([-]\d+(?:[.]\d+)?)%[*](\d+))?' .
+                         '(?:([+]\d+(?:[.]\d+)?)%[*](\d+))?)?'; # ($noffj, $ncntj, $poffj, $pcntj)
 my $reSIGtimpos = '(/+|\\\\+)'; # ($vpos)
-my $reSIGtimref = '([-<])(?:(\w+)(?:([-+]\d+)|@(\w+))?)([->])'; # ($leftend, $refname, $refoffset, $refevent, $rightend)
-my $reSIGtimtxt = '"([<]?)([^>"]*)([>]?)"'; # ($leftalign, $text, $rightalign)
+my $reSIGtimref = '([-<>])(?:(\w+)(?:@(\w+))?(?:([-+]\d+))?)([-<>])'; # ($leftend, $refname, $reftag, $refoffset, $rightend)
+my $reSIGtimtxt = '"(<)?(?|([^"]*)(>)"|([^"]*[^>])"|")'; # ($leftalign, $text, $rightalign)
 my $reSIGtiming = "(?:$reSIGtimpos$reSIGtimref$reSIGtimtxt)";
 my $reSIGtag    = '(?:/(\w+))?';
 
@@ -302,14 +350,14 @@ my $re_empty    = '^\s*$';
 my $re_comment  = '^([^#]*)#\s*(.*)$'; # ($text, $comment)
 my $re_variable = '^\s*\$(\w+)\s*=\s*(?:(\d+(?:\.\d+)?)\s*(px|pt|pc|in|mm|cm)?|"([^"]+)"|([-+]\d+(?:\.\d+)?)%)\s*$'; # ($varname, $varnum, $varunit, $vartext, $varprop)
 my $re_boundary = '^\s*[[]([-+]?\d+(?:[.]\d+)?)%:([-+]?\d+(?:[.]\d+)?)%[]]\s*$'; # ($cycleol, $cycleor)
-my $re_init     = "^\\s*$reSIGname($reSIGtext)$reSIGclock\\s*([=:])\\s*$reSIGvalue$reSIGoffset\\s*\$";
+my $re_init     = "^\\s*$reSIGname($reSIGtext)$reSIGclocki\\s*([=:])\\s*$reSIGvalue?$reSIGoffset\\s*\$";
 my $re_cycle    = '^\s*([.\|!]+)\s*$'; # (@cycle)
-my $re_event    = "^\\s*$reSIGname$reSIGtag\\s*=\\s*$reSIGvalue$reSIGoffset\\s*(($reSIGtiming\\s*)*)\$";
-my $re_timref   = "^\\s*$reSIGname(-\\d+)?\\s*(($reSIGtiming\\s*)*)\$";
+my $re_event    = "^\\s*$reSIGname$reSIGtag$reSIGclocke\\s*=\\s*$reSIGvalue?$reSIGoffset$reSIGjitter\\s*(($reSIGtiming\\s*)*)\$";
+my $re_timref   = "^\\s*$reSIGname([-+]\\d+)?\\s*(($reSIGtiming\\s*)*)\$";
 my $re_hiatus   = "^\\s*~(?:$reSIGname\\s*)?$reSIGoffset\\s*\$";
+my $re_subtime  = '^\s*[{}](\s|[{})*\s*$';
 
-
-# 
+#
 # Command options:
 #  - DEBUG, output debugging information
 #  - HELP, give help about script
@@ -455,34 +503,53 @@ sub ParseTMG ($) {
       my ($sname, $stextp, $stext, $scphases, $scduty, $sassign, $svlogic, $svtljust, $svtext, $svtrjust, $soffset) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
       debug ("<INIT> %s = %s (shown as \"%s\")", $sname, ($svlogic ? $svlogic : $svtext), ($stext ? $stext : $sname));
 
-      # Verify signal does not already exist, then create it
+      # Verify signal does not already exist
       if (exists ${$timing->signal}{$sname}) {
 	error ("attempt to declare already existing signal (%s)", $sname);
-      } else {
+	next;
+      }
+      # Verify offset is kept within a cycle boundary
+      if ((defined $soffset) && !(($scduty > -100) && ($scduty < 100))) {
+	error ("attempt to declare signal with an invalid offset (%s / %d%)", $sname, $soffset);
+	next;
+      }
+      # Verify duty cycle is ... decent!
+      if ((defined $scduty) && !(($scduty > 0) && ($scduty < 100))) {
+	error ("attempt to declare clock signal with an invalid duty cycle (%s / %d%)", $sname, $scduty);
+	next;
+      }
+      # Then create it
+      {
 	my $signal = new SIGNAL (
 	  name   => $stextp ? $stext : $sname,
-	  lvalue => (defined $svlogic) ? $svlogic : $svtext,
-	  ltime  => undef,
+	  value  => undef,
+	  time   => undef,
 	  offset => (defined $soffset) ? ($soffset / 100.0) : 0.0,
 	  clock  => (defined $scphases) ? $scphases : 0,
 	  duty   => (defined $scduty) ? ($scduty / 100) : 0.5,
+	  pvalue => (defined $svlogic) ? $svlogic : ((defined $svtext) ? $svtext : undef),
 	  noline => ($sassign eq ':'),
 	  logic  => (defined $svlogic),
 	  wave   => [],
 	  tagidx => {},
 	  minlvl => 0,
 	  maxlvl => 0,
-	  hiatus => []);
-	if ($signal->clock) {
+	  hiatus => [],
+	  );
+	  $signal->value($signal->pvalue);
+
+	# Make the clock/signal exist before the largest left window
+	if (($signal->clock > 0) && ($signal->logic) && (exists $CLOCKN{$signal->pvalue})) {
 	  CycleClockMaybe ($signal, -2);
 	  CycleClockMaybe ($signal, -1);
 	} else {
 	  my $wave = new WAVE (
 	    cycle => -2,
 	    time  => -2.0,
-	    value => (defined $svlogic) ? $svlogic : $svtext,
-	    logic => (defined $svlogic),
-	    align => $svtljust ? ($svtrjust ? 0 : -1) : ($svtrjust ? 1 : 0) );
+	    value => $signal->pvalue,
+	    logic => $signal->logic,
+	    align => $svtljust ? ($svtrjust ? 0 : -1) : ($svtrjust ? 1 : 0),
+	      );
 	  push (@{$signal->wave}, $wave);
 	}
 
@@ -513,11 +580,13 @@ sub ParseTMG ($) {
 	# Add vertical bar information if asked to
 	push (@{$timing->cyclesep}, $c);
 
-	# Handle clocks (as a special case out of init, create a former clock cycle)
-	foreach my $signal (@{$timing->signals}) {
-	  my $s = ${$timing->signal}{$signal};
-	  if ($s->clock) {
-	    CycleClockMaybe ($s, $cycle);
+	# Handle clocks (as a special case out of init, do not run clocks on the very first cycle so we can force them if needed)
+	if ($cycle > 0) {
+	  foreach my $signal (@{$timing->signals}) {
+	    my $s = ${$timing->signal}{$signal};
+	    if ($s->clock > 0) {
+	      CycleClockMaybe ($s, $cycle-1);
+	    }
 	  }
 	}
 
@@ -528,15 +597,19 @@ sub ParseTMG ($) {
 
     # Manage signal event
     if (/$re_event/oi) {
-      my ($sname, $stag, $svlogic, $svtljust, $svtext, $svtrjust, $soffset, $timrefs) = ($1, $2, $3, $4, $5, $6, $7, $8);
+      my ($sname, $stag, $sclock, $scphase, $scduty, $svlogic, $svtljust, $svtext, $svtrjust, $soffset, $noffj, $ncntj, $poffj, $pcntj, $timrefs) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);
       my @timref = split (/\s+(?=[\/\\])/, $timrefs);
       debug ("<EVENT>\n" .
 	     " - signal = %s\n" .
 	     " - tag    = %s\n" .
+	     " - clock  = %s\n" .
+	     " - phase  = %s\n" .
+	     " - duty   = %s\n" .
 	     " - value  = %s%s%s%s\n" .
 	     " - offset = %s\n" .
+	     " - jitter = %s%%*%s / %s%%*%s\n" .
 	     " - timref = %s | %s\n",
-	     $sname, $stag, $svlogic, $svtljust, $svtext, $svtrjust, $soffset, $timrefs, "[" . join ("] [", @timref) . "]");
+	     $sname, $stag, $sclock, $scphase, $scduty, $svlogic, $svtljust, $svtext, $svtrjust, $soffset, $noffj, $ncntj, $poffj, $pcntj, $timrefs, "[" . join ("] [", @timref) . "]");
 
       # Catch attempts to provide full event info during init
       if ($cycle < 0) {
@@ -550,72 +623,205 @@ sub ParseTMG ($) {
 	next;
       }
 
+      # Verify offset is kept within a cycle boundary
+      if (   (defined $soffset)
+	  && (($soffset <= -100) || (100 <= $soffset))) {
+	error ("attempt to assign signal an invalid offset (%s / %d%%)", $sname, $soffset);
+	next;
+      }
+      # Verify negative jitter is kept within a cycle boundary
+      if (   (defined $noffj)
+	  && (($noffj < -100) || (0 <= $noffj) || ($ncntj <= 0))) {
+	error ("attempt to assign signal an invalid negative jitter offset or count (%s / %d%% / %d)", $sname, $noffj, $ncntj);
+	next;
+      }
+      # Verify positive jitter is kept within a cycle boundary
+      if (   (defined $poffj)
+	  && (($poffj <= 0) || (100 < $poffj) || ($pcntj <= 0))) {
+	error ("attempt to assign signal an invalid positive jitter offset or count (%s / %d%% / %d)", $sname, $poffj, $pcntj);
+	next;
+      }
+      # Verify duty cycle is ... decent!
+      if (   (defined $scduty)
+	  && (($scduty <= 0) || (100 <= $scduty))) {
+	error ("attempt to assign clock signal an invalid duty cycle (%s / %d%%)", $sname, $scduty);
+	next;
+      }
       # ... then add a new event
       {
 	my $signal = ${$timing->signal}{$sname};
 
 	my $time  = $cycle + ((defined $soffset) ? ($soffset / 100.0) : $signal->offset);
-	my $value = (defined $svlogic) ? $svlogic : $svtext;
+	my $value = (defined $svlogic) ? $svlogic : ((defined $svtext) ? $svtext : undef);
 	my $align = (defined $svlogic) ? 0 : ($svtljust ? ($svtrjust ? 0 : -1) : ($svtrjust ? 1 : 0));
-	my $wave  = new WAVE (
-	  cycle => $cycle,
-	  time  => $time,
-	  value => $value,
-	  logic => (defined $svlogic),
-	  align => $align);
-	push (@{$signal->wave}, $wave);
-	$signal->ltime ($time);
-	$signal->lvalue($value);
+
+	my $refwaveidx;
+
+	# Redefine a clock if asked to
+	my $ckoffset = 0;
+	if (defined $sclock) {
+
+	  # Use the given phases or reuse previous one, if any
+	  if (defined $scphase) {
+	    $signal->clock ($scphase);
+	  } else {
+	    if ($signal->clock != 0) {
+	      $signal->clock (abs($signal->clock));
+	    } else {
+	      error ("trying to implicitly reactivate clock for signal \"%s\"", $sname);
+	      next;
+	    }
+	  }
+
+	  # Use the given duty cycle or reuse previous one, if any
+	  $signal->duty ((defined $scduty) ? ($scduty / 100) : 0.5);
+
+	  # Finally verify clock value is cyclable!
+	  if (exists $CLOCKN{$value}) {
+	    $signal->pvalue ($CLOCKN{$value});
+	    $signal->time (undef);
+	    CycleClockMaybe ($signal, $cycle);
+	    $ckoffset = $signal->clock - 1;
+	  } else {
+	    warning ("attempt to assign clock signal a non-clockable value (%s / %s), turning to signal", $sname, $value);
+	    $sclock = undef;
+	  }
+
+	}
+
+	# Deactivate clock (if it ever was) and register event
+	if (!(defined $sclock)) {
+	  $signal->clock (-abs($signal->clock));
+
+	  # Create jitter events before reference, if any
+	  if (defined ($noffj)) {
+	    for (my $i=0; $i<$ncntj; $i++) {
+	      my $timej = $time + $noffj*($ncntj-$i)/$ncntj/100;
+	      my $wave  = new WAVE (
+		cycle => $cycle,
+		time  => $timej,
+		jitter => (($i == 0) ? 'b' : 'm'),
+		value => $value,
+		logic => (defined $svlogic),
+		align => $align,
+		  );
+	      push (@{$signal->wave}, $wave);
+	      $signal->time ($timej);
+	    }
+	  }
+
+	  # Create reference event
+	  my $wave = new WAVE (
+	    cycle => $cycle,
+	    time  => $time,
+	    jitter => defined ($noffj) ? (defined ($poffj) ? 'm' : 'e') : (defined ($poffj) ?'b' : undef),
+	    value => $value,
+	    logic => (defined $svlogic),
+	    align => $align,
+	      );
+	  push (@{$signal->wave}, $wave);
+	  $signal->time ($time);
+	  $refwaveidx = $#{$signal->wave};
+
+	  # Create jitter events after reference, if any
+	  if (defined ($poffj)) {
+	    for (my $i=0; $i<$pcntj; $i++) {
+	      my $timej = $time + $poffj*($i+1)/$pcntj/100;
+	      my $wavej  = new WAVE (
+		cycle => $cycle,
+		time  => $timej,
+		jitter => (($i == ($pcntj-1)) ? 'e' : 'm'),
+		value => $value,
+		logic => (defined $svlogic),
+		align => $align,
+		  );
+	      push (@{$signal->wave}, $wavej);
+	      $signal->time ($timej);
+	    }
+	  }
+
+	  # Finally adjust the signal for what it is
+	  $signal->pvalue($signal->value);
+	  $signal->value($value);
+	}
+
+	# Create a tag if asked too (allowed only once), appropriately adjusting for clocks
 	if (defined $stag) {
 	  if (exists ${$signal->tagidx}{$stag}) {
 	    error ("tag \"%s\" redefined for signal \"%s\"", $stag, $sname);
 	  } else {
-	    ${$signal->tagidx}{$stag} = $#{$signal->wave};
+	    ${$signal->tagidx}{$stag} = $refwaveidx - $ckoffset;
 	  }
 	}
 
 	# Parse timing references, if any
-	ParseTIMREF ($timing, $signal, $wave, @timref);
+	my $wave = ${$signal->wave}[$refwaveidx - $ckoffset];
+	ParseTIMREF ($timing, $cycle, $signal, $wave, @timref);
       }
 
       next;
     }
 
     if (/$re_timref/oi) {
-      my ($sname, $soffset, $timrefs) = ($1, $2, $3);
+      my ($sname, $eoffset, $timrefs) = ($1, $2, $3);
+
+      # Sanity check
+      if (!(defined $eoffset)) {
+	$eoffset = 0;
+      }
+
+      # Check signal has been declared...
+      my $signal = (exists ${$timing->signal}{$sname}) ? ${$timing->signal}{$sname} : undef;
+      if (!(defined $signal)) {
+	error ("unknown signal (\"%s\")", $sname);
+	next;
+      }
+
+      # Now we perform a few operations if referring to a clock
+      #  - cycle the clock in this cycle (if not done already, allow it only once)
+      #  - allow positive offset only is less than the number of phases
+      #  - correct the offest by the number of phases, so we get a human-friendly reference
+      if ($signal->clock > 0) {
+	if ($eoffset >= $signal->clock) {
+	  error ("bad timing ref, clock signal offset shall be less than clock phases (%d >= %d)", $sname, $eoffset, $signal->clock);
+	  next;
+	}
+	CycleClockMaybe ($signal, $cycle);
+	$eoffset -= $signal->clock - 1;
+      } else {
+	if ($eoffset > 0) {
+	  error ("bad timing ref, signal offset shall be negative or null (vs %d)", $sname, $eoffset);
+	  next;
+
+	}
+      }
+
+      # Parse the timing references, if any
       my @timref = split (/\s+(?=[\/\\])/, $timrefs);
       debug ("<TIMREF>\n" .
 	     " - signal = %s\n" .
 	     " - offset = %s\n" .
 	     " - timref = %s | %s\n",
-	     $sname, $soffset, $timrefs, "[" . join ("] [", @timref) . "]");
+	     $sname, $eoffset, $timrefs, "[" . join ("] [", @timref) . "]");
 
-      # Check signal has been declared...
-      if (! (exists ${$timing->signal}{$sname})) {
-	error ("unknown signal (\"%s\")", $sname);
-	next;
-      }
-
-      # Parse the timing references, if any
-      my $signal = ${$timing->signal}{$sname};
-      my $wave   = ${$signal->wave}[-1+$soffset];
+      my $wave = ${$signal->wave}[-1+$eoffset];
       if (defined $wave) {
-	ParseTIMREF ($timing, $signal, $wave, @timref);
+	ParseTIMREF ($timing, $cycle, $signal, $wave, @timref);
       } else {
 	error ("attempt to reference a signal with no wave");
       }
-      
+
       next;
     }
 
 
     # Manage signal hiatus
     if (/$re_hiatus/oi) {
-      my ($sname, $soffset) = ($1, $2);
+      my ($sname, $hoffset) = ($1, $2);
       debug ("<HIATUS>\n" .
 	     " - signal = %s\n" .
 	     " - offset = %s\n",
-	     ($sname ? $sname : "<all>"), $soffset);
+	     ($sname ? $sname : "<all>"), $hoffset);
 
       # Catch attempts to provide full event info during init
       if ($cycle < 0) {
@@ -631,7 +837,7 @@ sub ParseTMG ($) {
 
       # ... then add a new hiatus
       {
-	my $time = $cycle + ((defined $soffset) ? ($soffset / 100.0) : 0);
+	my $time = $cycle + ((defined $hoffset) ? ($hoffset / 100.0) : 0);
 	foreach my $s ($sname ? ($sname) : @{$timing->signals}) {
 	  my $signal = ${$timing->signal}{$s};
 	  if (! $signal->noline) {
@@ -651,16 +857,21 @@ sub ParseTMG ($) {
 
   }
 
-  # Create a last event to reach end-of-cycle if needed
+  # Create a (few) lasts event to reach end-of-cycle if needed
   foreach my $s (values %{$timing->signal}) {
-    if (!(defined $s->ltime) || ($s->ltime < $cycle+2)) {
-      if ($s->clock) {
+    if (!(defined $s->time) || ($s->time < $cycle+2)) {
+      debug ("<LAST>\n" .
+	     " - signal = %s\n" .
+	     " - time = %s\n",
+	     $s->name, $s->time);
+      if ($s->clock > 0) {
+	CycleClockMaybe ($s, $cycle+0);
 	CycleClockMaybe ($s, $cycle+1);
 	CycleClockMaybe ($s, $cycle+2);
       } else {
 	my $lw = ${$s->wave}[-1];
 	push (@{$s->wave}, new WAVE (cycle => $cycle+2, time => $cycle+2, value => '=', logic => '=', align => undef));
-	$s->ltime ($cycle+2);
+	$s->time ($cycle+2);
       }
     }
   }
@@ -675,37 +886,60 @@ sub CycleClockMaybe ($$) {
   my ($signal, $cycle) = @_;
 
   # We can only cycle a clock with defined values
-  my $ltime  = $signal->ltime;
-  my $lvalue = $signal->lvalue;
+  my $time   = $signal->time;
+  my $value  = $signal->value;
+  my $pvalue = $signal->pvalue;
   my $phases = $signal->clock;
   my $duty   = $signal->duty;
   my $offset = $signal->offset;
 
-  if (!(defined $ltime)) {
-    $ltime  = $cycle - 1 + $offset;
-    if ( ($lvalue eq '0') || ($lvalue eq '1') ) {
-      $lvalue = ((($phases % 2) == 1) && ((($cycle-1)*$phases % 2) == 1)) ? $lvalue : (($lvalue eq '0') ? '1' : '0');
+  my $period = 2.0 / $phases;
+  my $widthh = $period * $duty;
+  my $widthl = $period - $widthh;
+
+  # If no event ever existed before, create the (pseudo) previous one
+  if (!(defined $time)) {
+
+    # At the very begining, create an event with the same value if we have an even number of phases, use opposite otherwise
+    if (($cycle < 0) && (exists $CLOCKN{$pvalue})) {
+      $value = (($cycle*$phases % 2) == 0) ? $pvalue : $CLOCKN{$pvalue};
+    } else {
+      $value = $pvalue;
     }
-    debug (" - phase %d: %s @ %.3f", $phases, $lvalue, $ltime);
-    push (@{$signal->wave}, new WAVE (cycle => $cycle-1, time => $ltime, value => $lvalue, logic => 1, align => 0));
+
+    # Now compute time of (pseudo) previous event
+    $time = $cycle + $offset - ($CLOCKL{$value} ? $widthl : $widthh);
+
+    # Do that only when on init, cuz we later unset/set $time later to manage "voids" (FIXME: what a kludge...)
+    if ($cycle < 0) {
+      debug (" - phase %d: %s @ %.3f", $phases, $value, $time);
+      push (@{$signal->wave}, new WAVE (cycle => $cycle-1, time => $time, value => $value, logic => 1, align => 0));
+    }
   }
 
-  if ( ($lvalue eq '0') || ($lvalue eq '1') ) {
-    debug ("<CLOCK> stepping %s by %d phases @ cycle %d", $signal->name, $signal->clock, $cycle);
+  if (exists $CLOCKN{$value}) {
+
+    # Check this clock has not been cycled already
+    my $lwave = ${$signal->wave}[-1];
+    if (($lwave->cycle) == $cycle) {
+      debug ("<CLOCK> skipping %s clock cycling at cycle %d, done already", $signal->name, $cycle);
+      return;
+    } else {
+      debug ("<CLOCK> stepping %s by %d phases @ cycle %d", $signal->name, $signal->clock, $cycle);
+    }
 
     # Step over each phase and add new events
-    my $period = 2.0 / $phases;
-    my $widthh = $period * $duty;
-    my $widthl = $period - $widthh;
     for (my $phase=0; $phase < $phases; $phase++) {
-      $ltime  = $ltime + (($lvalue eq '0') ? $widthl : $widthh);
-      $lvalue = ($lvalue eq '0') ? '1' : '0';
-      debug (" - phase %d: %s @ %.3f", $phase+1, $lvalue, $ltime);
-      push (@{$signal->wave}, new WAVE (cycle => $cycle, time => $ltime, value => $lvalue, logic => 1, align => 0));
+      $time = $time + ($CLOCKL{$value} ? $widthl : $widthh);
+      $pvalue = $value;
+      $value  = $CLOCKN{$value};
+      debug (" - phase %d: %s @ %.3f", $phase+1, $value, $time);
+      push (@{$signal->wave}, new WAVE (cycle => $cycle, time => $time, value => $value, logic => 1, align => 0));
     }
+    $signal->pvalue($pvalue);
+    $signal->time ($time);
+    $signal->value($value);
   }
-  $signal->ltime ($ltime);
-  $signal->lvalue($lvalue);
 }
 
 sub ParseVARIABLE ($$@) {
@@ -765,12 +999,12 @@ sub ParseVARIABLE ($$@) {
     else {
       my $value;
       given ($varunit) {
-	when (/px/)       { $value = $varnum;               }
-	when (/pt/)       { $value = $varnum * $DPI / 72;   }
-	when (/pc/)       { $value = $varnum * $DPI / 6;    }
-	when (/in/)       { $value = $varnum * $DPI;        }
-	when (/mm/)       { $value = $varnum * $DPI / 25.4; }
-	when (/cm/)       { $value = $varnum * $DPI / 2.54; }
+	when (/px/)       { $value = $varnum;               break; }
+	when (/pt/)       { $value = $varnum * $DPI / 72;   break; }
+	when (/pc/)       { $value = $varnum * $DPI / 6;    break; }
+	when (/in/)       { $value = $varnum * $DPI;        break; }
+	when (/mm/)       { $value = $varnum * $DPI / 25.4; break; }
+	when (/cm/)       { $value = $varnum * $DPI / 2.54; break; }
 	default { }
       }
       ${$VARIABLE{$varname}} = $value;
@@ -780,23 +1014,29 @@ sub ParseVARIABLE ($$@) {
 
 }
 
-sub ParseTIMREF ($$@) {
-  my ($timing, $signal, $wave, @timref) = @_;
+sub ParseTIMREF ($$$@) {
+  my ($timing, $cycle, $signal, $wave, @timref) = @_;
 
   # ... and process timing references, if any
   foreach my $t (@timref) {
-    my ($vpos, $leftend, $refname, $refoffset, $refevent, $rightend, $rightalign, $text, $leftalign) = ($t =~ /$reSIGtiming/);
+    my ($vpos, $leftend, $refname, $reftag, $refoffset, $rightend, $rightalign, $text, $leftalign) = ($t =~ /$reSIGtiming/);
     debug ("   <TIMREF>\n" .
 	   "    - vpos   = %s\n" .
-	   "    - sigref = %s%s%s%s%s\n" .
-	   "    - text   = %s%s%s\n",
-	   $vpos, $leftend, $refname, $refoffset, $refevent, $rightend, $rightalign, $text, $leftalign);
-    
-    # Check the referenced signal exists
-    if (! (exists ${$timing->signal}{$refname})) {
-      error ("unknown reference signal (\"%s\")", $refname);
+	   "    - sigref = %s \"%s\" \"%s\" \"%s\" %s\n" .
+	   "    - text   = %s \"%s\" %s\n",
+	   $vpos, $leftend, $refname, $reftag, $refoffset, $rightend, $rightalign, $text, $leftalign);
+
+    # Make sure we were not asked for an impossible arrow set
+    if (($leftend eq '>') && ($rightend ne '<') || ($rightend eq '<') && ($leftend ne '>')) {
+      error ("invalid timing arrow set (\"$leftend...$rightend\")");
     }
-    
+
+    # Check the referenced signal exists
+    my $refsig = (exists ${$timing->signal}{$refname}) ? ${$timing->signal}{$refname} : undef;
+    if (!(defined $refsig)) {
+      error ("bad timing ref, unknown reference signal (\"%s\")", $refname);
+    }
+
     # Update the signal level information
     my $vlevel = (($vpos =~ /\/+/) ? 1 : -1) * length ($vpos);
     if ($vlevel > $signal->maxlvl) {
@@ -805,20 +1045,28 @@ sub ParseTIMREF ($$@) {
     if ($vlevel < -$signal->minlvl) {
       $signal->minlvl (-$vlevel);
     }
-    
+
+    # Adjust offset if referring to a (active) clock, only in case no tag was given
+    if (!(defined $reftag) && ($refsig->clock > 0)) {
+      CycleClockMaybe ($refsig, $cycle);
+      $refoffset -= $refsig->clock - 1;
+    }
+
     # And create & populate a timing reference
     my $timref = new TIMREF (
       sigref => $refname,
+      evtref => $#{$refsig->wave},
       offref => $refoffset,
-      tagref => $refevent,
+      tagref => $reftag,
       text   => $text,
       align  => ($leftalign ne '') ? (($rightalign ne '') ? 0 : -1) : (($rightalign ne '') ? 1 : 0),
-      arrowr => ($leftend ne '-'),
-      arrows => ($rightend ne '-'),
+      arrowr => ($leftend  eq '>') ? -1 : (($leftend  eq '-') ? 0 : 1),
+      arrows => ($rightend eq '<') ? -1 : (($rightend eq '-') ? 0 : 1),
       level  => $vlevel);
     push (@{$wave->timref}, $timref);
     debug ("\n" .
 	   "    - sigref = %s\n" .
+	   "    - evtref = %s\n" .
 	   "    - offref = %s\n" .
 	   "    - tagref = %s\n" .
 	   "    - text   = %s\n" .
@@ -826,7 +1074,7 @@ sub ParseTIMREF ($$@) {
 	   "    - arrowr = %d\n" .
 	   "    - arrows = %d\n" .
 	   "    - level  = %d\n",
-	   $timref->sigref, $timref->offref, $timref->tagref, $timref->text, $timref->align, $rightalign, $leftalign, $timref->arrowr, $timref->arrows, $timref->level);
+	   $timref->sigref, $timref->evtref, $timref->offref, $timref->tagref, $timref->text, $timref->align, $rightalign, $leftalign, $timref->arrowr, $timref->arrows, $timref->level);
   }
 
 }
@@ -845,7 +1093,7 @@ sub DumpTiming ($) {
     debug ("<DUMP>  * %s (shown as \"%s\"" . ($s->clock ? ", clock with %d phases per cycle" : ""). ")", $signal, $s->name, $s->clock);
     foreach my $w (@{$s->wave}) {
       my $align = $w->logic ? "" : (($w->align < 0) ? "/left" : (($w->align > 0) ? "/right" : "/center"));
-      debug ("<DUMP>    %.3f @ %d => %s%s", $w->time, $w->cycle, , $w->logic ? $w->value : '"' . $w->value . '"',  $align);
+      debug ("<DUMP>    %.3f @ %d => %s%s / %s", $w->time, $w->cycle, , $w->logic ? $w->value : '"' . $w->value . '"', $align, $w->jitter);
     }
   }
 
@@ -874,7 +1122,7 @@ sub RenderTiming ($) {
   debug ("<ADJUST> NONE");
   $RATIO = $RATIO * $SIGNALH;
   debug ("   - RATIO = %s", $RATIO);
- 
+
   # Apply width and/or height constraints, if any...
 #    warning ("variable value \"%s\" ignored when sizing for \"%s\"", "", "") if (defined $);
   if (defined $CYCLE) {
@@ -952,20 +1200,20 @@ sub RenderTiming ($) {
 	my $dx = UnratioX ($timing, $w/2);
 	my $xl = 0               - $timing->dtl + $dx;
 	my $xr = $timing->cycles + $timing->dtr - $dx;
-	my $yb = $s->yl - $SIGNALH*$SM/2;
+	my $yb = $s->y + $SIGNALH - $SIGNALH*$SM/2;
 	RenderPolyline ($svg, $timing, $GRAY, $w, 1, ($xl,$yb), ($xr,$yb));
       }
     }
 
 
-    # Process vertical cycle-separators, except first (unless DTL non-null) and last (unless DTR non null) 
+    # Process vertical cycle-separators, except first (unless DTL non-null) and last (unless DTR non null)
     my $dtlom = ($timing->dtl > 0.0) ? 1 : 0;
     my $dtrom = ($timing->dtr > 0.0) ? 1 : 0;
     for (my $cycle=1-$dtlom; $cycle < $timing->cycles+$dtrom; $cycle++) {
       RenderVbar ($svg, $timing, $cycle, ${$timing->cyclesep}[$cycle]);
     }
 
-    # Process each timing ref
+    # Process each timing ref in a signal, wave by wave
     foreach my $signal (@{$timing->signals}) {
       my $s = ${$timing->signal}{$signal};
       my $ys = $s->y;
@@ -977,6 +1225,9 @@ sub RenderTiming ($) {
 	  my $sr = ${$timing->signal}{$t->sigref};
 	  my $yr = $sr->y;
 	  RenderTimref ($svg, $timing, $t, $cycle, $time, $ys, $yr);
+
+	  # We shall have a timref tag mark here (done later when rendering signal)
+	  $w->timtag(1);
 	}
       }
     }
@@ -1052,7 +1303,7 @@ sub RenderVbar ($$$$) {
     $yl -= $VWIDTH/2 if ($yl == $h);
     RenderPolyline ($svg, $timing, "| ", $VWIDTH, 1, ($x,$yh), ($x,$yl));
   }
-  
+
 }
 
 sub RenderTimref ($$$$$$) {
@@ -1061,7 +1312,7 @@ sub RenderTimref ($$$$$$) {
   # First parse reference signal's wave for the closest event
   my $sigref = ${$timing->signal}{$timref->sigref};
   my @wr = @{$sigref->wave};
-  my $ir = -1;
+  my $ir = $timref->evtref;
   if ($timref->tagref ne '') {
     if (exists ${$sigref->tagidx}{$timref->tagref}) {
       $ir = ${$sigref->tagidx}{$timref->tagref};
@@ -1069,18 +1320,16 @@ sub RenderTimref ($$$$$$) {
       error ("could not find reference event \"%s\" in signal wave \"%s\"", $timref->tagref, $timref->sigref);
       return;
     }
-  } else {
-    foreach my $wr (@wr) {
-      if ($wr->cycle <= $cs) {
-	$ir++;
-      }
-    }
-    if (($ir < 0) || (($ir+$timref->offref) < 0) || (($ir+$timref->offref) > $#wr)) {
-      error ("could not find event with offset %d in signal wave \"%s\"", $timref->offref, $timref->sigref);
-      return;
-    }
+  } 
+  if (($ir < 0) || (($ir+$timref->offref) < 0) || (($ir+$timref->offref) > $#wr)) {
+    error ("could not find event with offset %d in signal wave \"%s\"", $timref->offref, $timref->sigref);
+    return;
   }
-  my $tr = $wr[$ir+$timref->offref]->time;
+  my $wi = $ir+$timref->offref;
+  my $tr = $wr[$wi]->time;
+
+  # We shall have a timref tag mark here (done later when rendering signal)
+  $wr[$wi]->timtag(1);
 
   # Now compute elevations...
   my ($ysh, $ysl, $ysm, $yrh, $yrl);
@@ -1120,30 +1369,50 @@ sub RenderTimref ($$$$$$) {
   my $daa = UnratioX ($timing, ($tr < $ts) ? $VWIDTH : -$VWIDTH);
   my $dar = ($timref->arrowr) ? $daa : 0;
   my $das = ($timref->arrows) ? $daa : 0;
-  RenderPolyline ($svg, $timing, "| ", $VWIDTH, 1, ($tr+$dar, $ysm), ($ts-$das, $ysm));
-  if ($timref->arrowr) {
-    RenderPolygon ($svg, $timing, $BLACK, $VWIDTH, 1, ($tr+$daa, $ysm), ($tr+$dax, $ysm+$day/2), ($tr+$dax, $ysm-$day/2));
-  }
-  if ($timref->arrows) {
-    RenderPolygon ($svg, $timing, $BLACK, $VWIDTH, 1, ($ts-$daa, $ysm), ($ts-$dax, $ysm+$day/2), ($ts-$dax, $ysm-$day/2));
+  my $dae = 0;
+
+  #
+  if (($timref->arrowr < 0) && ($timref->arrows < 0)) {
+    $dae = 1.5*$dax;
+    RenderPolyline ($svg, $timing, "| ",   $VWIDTH, 1, ($tr-$dar, $ysm), ($tr-$dae, $ysm));
+    RenderPolygon  ($svg, $timing, $BLACK, $VWIDTH, 1, ($tr-$daa, $ysm), ($tr-$dax, $ysm+$day/2), ($tr-$dax, $ysm-$day/2));
+    RenderPolyline ($svg, $timing, "| ",   $VWIDTH, 1, ($ts+$dar, $ysm), ($ts+$dae, $ysm));
+    RenderPolygon  ($svg, $timing, $BLACK, $VWIDTH, 1, ($ts+$daa, $ysm), ($ts+$dax, $ysm+$day/2), ($ts+$dax, $ysm-$day/2));
+  } else {
+    RenderPolyline ($svg, $timing, "| ", $VWIDTH, 1, ($tr+$dar, $ysm), ($ts-$das, $ysm));
+    if ($timref->arrowr) {
+      RenderPolygon ($svg, $timing, $BLACK, $VWIDTH, 1, ($tr+$daa, $ysm), ($tr+$dax, $ysm+$day/2), ($tr+$dax, $ysm-$day/2));
+    }
+    if ($timref->arrows) {
+      RenderPolygon ($svg, $timing, $BLACK, $VWIDTH, 1, ($ts-$daa, $ysm), ($ts-$dax, $ysm+$day/2), ($ts-$dax, $ysm-$day/2));
+    }
   }
 
-  # ... and timing text
-  my ($tx, $ta, $tw);
-  if ($timref->align < 0) {
-    $tx = (($tr < $ts) ? $tr - $dax/2 : $ts + $dax/2);
-    $ta = +1;
-    $tw = 0;
-  } elsif ($timref->align > 0) {
-    $tx = (($tr < $ts) ? $ts + $dax/2 : $tr - $dax/2) ;
-    $ta = -1;
-    $tw = 0;
-  } else {
-    $tx = ($tr + $ts) / 2;
-    $ta = 0;
-    $tw = ($tr < $ts) ? ($ts - $tr) : ($tr - $ts);
+  # ... and timing text, if any!
+  if ($timref->text) {
+    my ($tx, $ta, $tw);
+    # Justify text right, to the outer left of timing reference
+    if ($timref->align < 0) {
+      $tx = (($tr < $ts) ? $tr - $dae - $dax/2 : $ts + $dae + $dax/2);
+      $ta = +1;
+      $tw = 0;
+    }
+    # Justify text left, to the outer right of timing reference
+    elsif ($timref->align > 0) {
+      $tx = (($tr < $ts) ? $ts + $dae + $dax/2 : $tr - $dae - $dax/2);
+      $ta = -1;
+      $tw = 0;
+    }
+    # Center text within timing reference (but adjust for the arrows, if any)
+    else {
+      my $txr = $tr + (($timref->arrowr > 0) ? $dax : 0);
+      my $txs = $ts - (($timref->arrows > 0) ? $dax : 0);
+      $tx = ($txr + $txs) / 2;
+      $ta = 0;
+      $tw = abs ($txr - $txs);
+    }
+    RenderText ($svg, $timing, ($tx, $ysm), $timref->text, $ta, $FSIZET, $tw, 0, $WHITE)
   }
-  RenderText ($svg, $timing, ($tx, $ysm), $timref->text, $ta, $FSIZET, $tw, 0, $WHITE)
 
 }
 
@@ -1165,45 +1434,52 @@ sub RenderSignal ($$$$$) {
   # Show the signal name
   RenderText ($svg, $timing, UnratioX ($timing, -$SNAMEO) - $timing->dtl, $ym, $signal->name, +1, $FSIZES, 0);
 
-  # Render the signal wave
+  # Render the signal wave by wave
   foreach my $w (@{$signal->wave}) {
     my $c = $w->cycle;
     my $l = $w->logic;
     my $v = $w->value;
     my $a = $w->align;
     my $t = $w->time;
+    my $j = $w->jitter;
     my $s;
     my $tv = ($l ? "" : $v);
+    my $tt = (defined $w->timtag);
 
-    $s = ($l ? $v : 'T');
-    $s =~ tr/LH/01/;
+    $s = (defined $v) ? ($l ? $v : 'T') : ' ';
     debug ("  <%s SIGNAL> %s @ %.3f (%s)", !(defined $pt) ? "INIT  " : "RENDER", $s, $t, $l ? "logic" : '"' . $v . '"');
 
     # First initialize the wave, after which rendering can be started
     if (!(defined $pt)) {
-      InitWavePoint  ($lpt, $s, $tv, $a);
+      InitWavePoint  ($lpt, $s, $tv, $a, $j);
       FirstWavePoint ($lpt, $t, $yh, $ym, $yl);
       $pt = $lpt;
       next;
     }
 
     # Then compute new point and render wave
-    InitWavePoint ($rpt, $s, $tv, $a);
+    InitWavePoint ($rpt, $s, $tv, $a, $j);
     my $h = $signal->hiatus;
     RenderWave ($svg, $timing, $lpt, $rpt, $t, $yh, $ym, $yl, $hx, $qx, $noline, $h);
 
-    # Prepare left point for next wave
+    # Prepare left point for next wave (we swap $lpt & $rpt because rpt contains data for the next run)
     $pt = $lpt; $lpt = $rpt; $rpt = $pt;
+  }
+
+  # Render the signal tags one by one, if any
+  foreach my $w (@{$signal->wave}) {
+    RenderWaveTag ($svg, $timing, $w->time, $ym, $hx, $noline, $w->timtag);
   }
 
 }
 
-sub InitWavePoint ($$$$) {
-  my ($pt, $s, $v, $a) = @_;
+sub InitWavePoint ($$$$$) {
+  my ($pt, $s, $v, $a, $j) = @_;
 
   $pt->s($s);
   $pt->v($v);
   $pt->a($a);
+  $pt->j($j);
   @{$pt->plpt} = ();
   @{$pt->ltpt} = ();
   @{$pt->rtpt} = ();
@@ -1212,14 +1488,15 @@ sub InitWavePoint ($$$$) {
 sub FirstWavePoint ($$$$$) {
   my ($pt, $t, $yh, $ym, $yl) = @_;
 
+  # Referring to high/medium/low points
   my (@pth, @ptm, @ptl, @npt);
 
   # Catch all possible cases
   given ($pt->s) {
-    when (/1/)       { @pth = ($t, $yh);                   @npt = (@pth      ); }
-    when (/Z/)       { @ptm = ($t, $ym);                   @npt = (@ptm      ); }
-    when (/0/)       { @ptl = ($t, $yl);                   @npt = (@ptl      ); }
-    when (/[XT]/)    { @pth = ($t, $yh); @ptl = ($t, $yl); @npt = (@pth, @ptl); }
+    when (/^[1H]/)	{ @pth = ($t, $yh);                   @npt = (@pth      ); break; }
+    when (/^Z/)		{ @ptm = ($t, $ym);                   @npt = (@ptm      ); break; }
+    when (/^[0L]/)	{ @ptl = ($t, $yl);                   @npt = (@ptl      ); break; }
+    when (/^[XWT]/)	{ @pth = ($t, $yh); @ptl = ($t, $yl); @npt = (@pth, @ptl); break; }
     default { }
   }
 
@@ -1227,52 +1504,117 @@ sub FirstWavePoint ($$$$$) {
   @{$pt->rtpt}  = ($t, $ym);
 }
 
-sub RenderWave ($$$$$$$$$$$$) {
+sub RenderWave ($$$$$$$$$$$) {
   my ($svg, $timing, $ppt, $pt, $t, $yh, $ym, $yl, $dhx, $dqx, $noline, $hiatus) = @_;
 
   my ($hx, $qx) = $noline ? (0, 0) : ($dhx, $dqx);
-  my (@pth, @ptm, @ptl, @clpt, @cppt, @nlpt, @ltpt, @rtpt);
 
-  # Catch all possible cases
+  # Referring to low/medium/high points
+  my (@ptl, @ptm, @pth);
+
+  # Referring to (closing?) line/polygon/segment points
+  my (@clpt, @cppt);
+
+  # Referring to next/left/right line points ("next" normally is "left", except when polygons...)
+  my (@nlpt, @ltpt, @rtpt);
+
+  # Special stuff for handling jitter
+  my (@cspt, @xlpt);
+
+  # Determine the ending/starting points, we catch all possible cases (49 total, 'T' & '=' skipped)
   my $ss = $ppt->s . $pt->s;
+
+  # If we have jitter, adjust (in advance) current value to previous one (we reuse/rotate the points)
+  if (defined ($pt->j)) {
+    $ss = $ss . $pt->j;
+    if ($pt->j ne 'e') {
+      $pt->s($ppt->s);
+    }
+  }
+
   given ($ss) {
-    when (/11/)       { @pth = ($t, $yh); @clpt = (@pth); @nlpt = (@pth); @ltpt = (@pth); @rtpt = (@pth); }
-    when (/ZZ/)       { @ptm = ($t, $ym); @clpt = (@ptm); @nlpt = (@ptm); @ltpt = (@ptm); @rtpt = (@ptm); }
-    when (/00/)       { @ptl = ($t, $yl); @clpt = (@ptl); @nlpt = (@ptl); @ltpt = (@ptl); @rtpt = (@ptl); }
 
-    when (/1[XT]/)    { @pth = ($t-$hx, $yh); @ptl = ($t+$hx, $yl);                       @clpt = (@pth); @nlpt = (@pth, @ptl);       @ltpt = (@pth); @rtpt = (@ptl); }
-    when (/Z[XT]/)    { @ptm = ($t-$qx, $ym); @pth = ($t+$qx, $yh); @ptl = ($t+$qx, $yl); @clpt = (@ptm); @nlpt = (@pth, @ptm, @ptl); @ltpt = (@ptm); @rtpt = (@pth); }
-    when (/0[XT]/)    { @ptl = ($t-$hx, $yl); @pth = ($t+$hx, $yh);                       @clpt = (@ptl); @nlpt = (@pth, @ptl);       @ltpt = (@ptl); @rtpt = (@pth); }
+    # Into void
+    when (/^[1H] /)      { @pth = ($t, $yh);                                                 @clpt = (@pth);             @nlpt = ();     @ltpt = (@pth); @rtpt = ();     break; }
+    when (/^Z /)         { @ptm = ($t, $ym);                                                 @clpt = (@ptm);             @nlpt = ();     @ltpt = (@ptm); @rtpt = ();     break; }
+    when (/^[0L] /)      { @ptl = ($t, $yl);                                                 @clpt = (@ptl);             @nlpt = ();     @ltpt = (@ptl); @rtpt = ();     break; }
+    when (/^[XWT] /)     { @ptm = ($t, $ym); @pth = ($t-$hx, $yh); @ptl = ($t-$hx, $yl);     @cppt = (@ptl, @ptm, @pth); @nlpt = ();     @ltpt = (@ptm); @rtpt = ();     break; }
 
-    when (/10/)       { @pth = ($t-$hx, $yh); @ptl = ($t+$hx, $yl); @clpt = (@pth, @ptl); @nlpt = (@ptl); @ltpt = (@pth); @rtpt = (@ptl); }
-    when (/1Z/)       { @pth = ($t-$qx, $yh); @ptm = ($t+$qx, $ym); @clpt = (@pth, @ptm); @nlpt = (@ptm); @ltpt = (@pth); @rtpt = (@ptm); }
-    when (/Z0/)       { @ptm = ($t-$qx, $ym); @ptl = ($t+$qx, $yl); @clpt = (@ptm, @ptl); @nlpt = (@ptl); @ltpt = (@ptm); @rtpt = (@ptl); }
-    when (/Z1/)       { @ptm = ($t-$qx, $ym); @pth = ($t+$qx, $yh); @clpt = (@ptm, @pth); @nlpt = (@pth); @ltpt = (@ptm); @rtpt = (@pth); }
-    when (/0Z/)       { @ptl = ($t-$qx, $yl); @ptm = ($t+$qx, $ym); @clpt = (@ptl, @ptm); @nlpt = (@ptm); @ltpt = (@ptl); @rtpt = (@ptm); }
-    when (/01/)       { @ptl = ($t-$hx, $yl); @pth = ($t+$hx, $yh); @clpt = (@ptl, @pth); @nlpt = (@pth); @ltpt = (@ptl); @rtpt = (@pth); }
+    # Out of void
+    when (/^ [1H]/)      { @pth = ($t, $yh);                                                 @clpt = ();     @nlpt = (@pth);             @ltpt = ();     @rtpt = (@pth); break; }
+    when (/^ Z/)         { @ptm = ($t, $ym);                                                 @clpt = ();     @nlpt = (@ptm);             @ltpt = ();     @rtpt = (@ptm); break; }
+    when (/^ [0L]/)      { @ptl = ($t, $yl);                                                 @clpt = ();     @nlpt = (@ptl);             @ltpt = ();     @rtpt = (@ptl); break; }
+    when (/^ [XWT]/)     { @ptm = ($t, $ym); @pth = ($t+$hx, $yh); @ptl = ($t+$hx, $yl);     @cppt = ();     @nlpt = (@pth, @ptm, @ptl); @ltpt = ();     @rtpt = (@pth); break; }
 
-    when (/[XT]1/)    { @ptl = ($t-$hx, $yl); @pth = ($t+$hx, $yh);                       @cppt = (@ptl, @pth);       @nlpt = (@pth); @ltpt = (@ptl); @rtpt = (@pth); }
-    when (/[XT]Z/)    { @ptm = ($t+$qx, $ym); @pth = ($t-$qx, $yh); @ptl = ($t-$qx, $yl); @cppt = (@ptl, @ptm, @pth); @nlpt = (@ptm); @ltpt = (@pth); @rtpt = (@ptm); }
-    when (/[XT]0/)    { @pth = ($t-$hx, $yh); @ptl = ($t+$hx, $yl);                       @cppt = (@ptl, @pth);       @nlpt = (@ptl); @ltpt = (@pth); @rtpt = (@ptl); }
+    # Constant (9 = 4+1+4)
+    when (/^[1H][1H]/)   { @pth = ($t, $yh);                                                 @clpt = (@pth); @nlpt = (@pth);             @ltpt = (@pth); @rtpt = (@pth); break; }
+    when (/^ZZ/)         { @ptm = ($t, $ym);                                                 @clpt = (@ptm); @nlpt = (@ptm);             @ltpt = (@ptm); @rtpt = (@ptm); break; }
+    when (/^[0L][0L]/)   { @ptl = ($t, $yl);                                                 @clpt = (@ptl); @nlpt = (@ptl);             @ltpt = (@ptl); @rtpt = (@ptl); break; }
 
-    when (/[XT][XT]/) { @ptm = ($t,     $ym); @pth = ($t-$hx, $yh); @ptl = ($t-$hx, $yl); @cppt = (@ptl, @ptm, @pth); @ltpt = (@pth);
-			                      @pth = ($t+$hx, $yh); @ptl = ($t+$hx, $yl); @nlpt = (@pth, @ptm, @ptl); @rtpt = (@pth); }
+    # Any but unknown/text to unknown/text (10 = 4+2+4, 'T' skipped)
+    when (/^[1H][XWT]/)  { @pth = ($t-$hx, $yh); @ptl = ($t+$hx, $yl);                       @clpt = (@pth); @nlpt = (@pth, @ptl);       @ltpt = (@pth); @rtpt = (@ptl); break; }
+    when (/^Z[XWT]/)     { @ptm = ($t-$qx, $ym); @pth = ($t+$qx, $yh); @ptl = ($t+$qx, $yl); @clpt = (@ptm); @nlpt = (@pth, @ptm, @ptl); @ltpt = (@ptm); @rtpt = (@pth); break; }
+    when (/^[0L][XWT]/)  { @ptl = ($t-$hx, $yl); @pth = ($t+$hx, $yh);                       @clpt = (@ptl); @nlpt = (@pth, @ptl);       @ltpt = (@ptl); @rtpt = (@pth); break; }
 
-    when (/1=/)       { @pth = ($t, $yh);                   @clpt = (@pth      ); @ltpt = (@pth); }
-    when (/Z=/)       { @ptm = ($t, $ym);                   @clpt = (@ptm      ); @ltpt = (@ptm); }
-    when (/0=/)       { @ptl = ($t, $yl);                   @clpt = (@ptl      ); @ltpt = (@ptl); }
-    when (/[XT]=/)    { @pth = ($t, $yh); @ptl = ($t, $yl); @cppt = (@ptl, @pth); @ltpt = (@pth); }
+    # Fall (8 = 4+2+2)
+    when (/^[1H][0L]/)   { @pth = ($t-$hx, $yh); @ptl = ($t+$hx, $yl);                       @clpt = (@pth); @nlpt = (@pth, @ptl);       @ltpt = (@pth); @rtpt = (@ptl); break; }
+    when (/^[1H]Z/)      { @pth = ($t-$qx, $yh); @ptm = ($t+$qx, $ym);                       @clpt = (@pth); @nlpt = (@pth, @ptm);       @ltpt = (@pth); @rtpt = (@ptm); break; }
+    when (/^Z[0L]/)      { @ptm = ($t-$qx, $ym); @ptl = ($t+$qx, $yl);                       @clpt = (@ptm); @nlpt = (@ptm, @ptl);       @ltpt = (@ptm); @rtpt = (@ptl); break; }
 
+    # Rise (8 = 2+2+4)
+    when (/^[0L][1H]/)   { @ptl = ($t-$hx, $yl); @pth = ($t+$hx, $yh);                       @clpt = (@ptl); @nlpt = (@ptl, @pth);       @ltpt = (@ptl); @rtpt = (@pth); break; }
+    when (/^[0L]Z/)      { @ptl = ($t-$qx, $yl); @ptm = ($t+$qx, $ym);                       @clpt = (@ptl); @nlpt = (@ptl, @ptm);       @ltpt = (@ptl); @rtpt = (@ptm); break; }
+    when (/^Z[1H]/)      { @ptm = ($t-$qx, $ym); @pth = ($t+$qx, $yh);                       @clpt = (@ptm); @nlpt = (@ptm, @pth);       @ltpt = (@ptm); @rtpt = (@pth); break; }
 
+    # Unknown/text to any but unknown/text (10 = 4+2+4, 'T' skipped)
+    when (/^[XWT][1H]/)  { @ptl = ($t-$hx, $yl); @pth = ($t+$hx, $yh);                       @cppt = (@ptl, @pth);       @nlpt = (@pth); @ltpt = (@ptl); @rtpt = (@pth); break; }
+    when (/^[XWT]Z/)     { @ptm = ($t+$qx, $ym); @pth = ($t-$qx, $yh); @ptl = ($t-$qx, $yl); @cppt = (@ptl, @ptm, @pth); @nlpt = (@ptm); @ltpt = (@pth); @rtpt = (@ptm); break; }
+    when (/^[XWT][0L]/)  { @pth = ($t-$hx, $yh); @ptl = ($t+$hx, $yl);                       @cppt = (@ptl, @pth);       @nlpt = (@ptl); @ltpt = (@pth); @rtpt = (@ptl); break; }
+
+    # Unknown/text to unknown/text (4, 'T' skipped)
+    when (/^[XWT][XWT]/) { @ptm = ($t,     $ym); @pth = ($t-$hx, $yh); @ptl = ($t-$hx, $yl); @cppt = (@ptl, @ptm, @pth);                 @ltpt = (@pth);
+                           @pth = ($t+$hx, $yh); @ptl = ($t+$hx, $yl);                       @nlpt = (@pth, @ptm, @ptl);                 @rtpt = (@pth); break; }
+
+    # Tail
+    when (/^[1H]=/)      { @pth = ($t, $yh);                                                 @clpt = (@pth      ); @ltpt = (@pth); break; }
+    when (/^Z=/)         { @ptm = ($t, $ym);                                                 @clpt = (@ptm      ); @ltpt = (@ptm); break; }
+    when (/^[0L]=/)      { @ptl = ($t, $yl);                                                 @clpt = (@ptl      ); @ltpt = (@ptl); break; }
+    when (/^[XWT]=/)     { @pth = ($t, $yh); @ptl = ($t, $yl);                               @cppt = (@ptl, @pth); @ltpt = (@pth); break; }
+
+    # Normally never reached...
+    default { }
+  }
+
+  # Reprocess the point(s) list(s) in special case of "jitter" events (begin/middle/end)
+  given ($ss) {
+
+    when (   /^[0LZ][H1]b/
+	  || /^[0L]Zb/
+	  || /^[1HZ][L0]b/
+	  || /^[1H]Zb/     ) { @cspt = @nlpt; @xlpt = @nlpt[2,3];    @nlpt = @{$ppt->plpt}; @clpt = (); break; }
+    when (   /^[0LZ][H1]m/
+	  || /^[0L]Zm/
+	  || /^[1HZ][L0]m/
+	  || /^[1H]Zm/     ) { @cspt = @nlpt; @xlpt = @{$ppt->xlpt}; @nlpt = @{$ppt->plpt}; @clpt = (); break; }
+    when (   /^[0LZ][H1]e/
+	  || /^[0L]Ze/
+	  || /^[1HZ][L0]e/
+	  || /^[1H]Ze/     ) { @cspt = @nlpt; @xlpt = ();            @nlpt = @{$ppt->xlpt};             break; }
+
+    # Normally never reached...
     default { }
   }
 
   # Render polyline(s) and/or polygon if "allowed"
   if (!$noline) {
-    if    (@clpt) {RenderPolyline ($svg, $timing, $ss, $SWIDTH, 0, @{$ppt->plpt}, @clpt); }
-    elsif (@cppt) {RenderPolygon  ($svg, $timing, $ss, $SWIDTH, 0, @{$ppt->plpt}, @cppt); }
+    if    (@cspt) { my $sx = substr ($ss, 1, 1) . "x";
+		    RenderPolyline ($svg, $timing, $sx, $SWIDTH, 0, @cspt               ); }
+    if    (@clpt) { RenderPolyline ($svg, $timing, $ss, $SWIDTH, 0, @{$ppt->plpt}, @clpt); }
+    elsif (@cppt) { RenderPolygon  ($svg, $timing, $ss, $SWIDTH, 0, @{$ppt->plpt}, @cppt); }
   }
   @{$pt->plpt} = @nlpt;
+  @{$pt->xlpt} = @xlpt;
+  debug ("   <RENDER WAVE> %2s: nlpt = (%s)", $ss, DumpPoints (@nlpt));
 
   # Force text to be verticaly-centered...
   @ltpt[1] = $ym;
@@ -1319,9 +1661,21 @@ sub RenderWave ($$$$$$$$$$$$) {
 
 }
 
+sub RenderWaveTag ($$$$$$$) {
+  my ($svg, $timing, $x, $y, $dx, $noline, $timtag) = @_;
+
+  # Render a timref tag, if any
+  if ($timtag && !$noline) {
+    my @ttl = ($x - $dx, $y);
+    my @ttr = ($x + $dx, $y);
+    RenderPolyline ($svg, $timing, 0, $VWIDTH, 0, @ttl, @ttr);
+  }
+
+}
+
 sub RenderCommon ($) {
   my ($svg) = @_;
- 
+
 ##  <svg xmlns='http://www.w3.org/2000/svg' font-size='24'>
 ##    <filter id='f' x='0' y='0' width='100%' height='100%'>
 ##      <feFlood flood-color='yellow' result='bg'/>
@@ -1334,7 +1688,7 @@ sub RenderCommon ($) {
 ##  </svg>
 
   my $bgText = $svg->filter (
-    id     => 'bgText', 
+    id     => 'bgText',
     filterUnits => 'objectBoundingBox',
     x      => '0%',
     y      => '0%',
@@ -1346,7 +1700,7 @@ sub RenderCommon ($) {
   my $merge = $bgText->fe ('-type' => 'merge');
   $merge->fe ('-type' => 'mergenode', in => 'bg');
   $merge->fe ('-type' => 'mergenode', in => 'SourceGraphic');
-  
+
 }
 
 sub RenderPolyline ($$$$$@) {
@@ -1354,6 +1708,8 @@ sub RenderPolyline ($$$$$@) {
 
   debug ("    <RENDER POLYLINE> %2s: %s", $ss, DumpPoints (@pt));
 
+  my $dw = RenderDX ($timing, $lw);
+  my $da = "$dw, " . $dw*2;
   {
     # Clip polyline, unless asked not to... (offset limits inward by 1/2 line-width!)
     my $hlwx = UnratioX ($timing, $lw)/2;
@@ -1370,12 +1726,14 @@ sub RenderPolyline ($$$$$@) {
 	$svg->polyline (
 	  points => join (",", RenderXY ($timing, @cpt[$f .. $t])),
 	  style => {
-	    'fill' => 'none',	 # none or #rrggbb
-	    'stroke' => ($ss =~ /$re_color/o) ? $ss : $BLACK, # none or #rrggbb
-	    'stroke-width' => RenderDX ($timing, $lw),
-	    'stroke-dasharray' => 'none',
-	    'stroke-linecap' => 'round',
-	    'stroke-linejoin' => 'round',
+	    'fill'              => 'none', # none or #rrggbb
+	    'stroke'            => ($ss =~ /$re_color/o) ? $ss : $BLACK, # none or #rrggbb
+	    'stroke-width'      => $dw,
+	    'stroke-dasharray'  => (($ss =~ /$re_ss_dash/o) ? "$da" : 'none'),
+	    'stroke-dashoffset' => '0',
+	    'stroke-miterlimit' => $dw,
+	    'stroke-linecap'    => 'round',
+	    'stroke-linejoin'   => 'round',
 	  } );
 	$i += $c;
       }
@@ -1387,12 +1745,14 @@ sub RenderPolyline ($$$$$@) {
       $svg->polyline (
 	points => join (",", RenderXY ($timing, @cpt)),
 	style => {
-	  'fill' => 'none',	# none or #rrggbb
-	  'stroke' => ($ss =~ /$re_color/o) ? $ss : $BLACK, # none or #rrggbb
-	  'stroke-width' => RenderDX ($timing, $lw),
-	  'stroke-dasharray' => 'none',
-	  'stroke-linecap' => 'round',
-	  'stroke-linejoin' => 'round',
+	  'fill'              => 'none', # none or #rrggbb
+	  'stroke'            => ($ss =~ /$re_color/o) ? $ss : $BLACK, # none or #rrggbb
+	  'stroke-width'      => $dw,
+	  'stroke-dasharray'  => (($ss =~ /$re_ss_dash/o) ? "$da" : 'none'),
+	  'stroke-dashoffset' => '0',
+	  'stroke-miterlimit' => $dw,
+	  'stroke-linecap'    => 'round',
+	  'stroke-linejoin'   => 'round',
 	} );
     }
 
@@ -1408,6 +1768,8 @@ sub RenderPolygon ($$$$$@) {
 
   debug ("    <RENDER POLYGON> %2s: %s", $ss, DumpPoints (@pt));
 
+  my $dw  = RenderDX ($timing, $lw);
+  my $da = "$dw, " . $dw*2;
   {
     # Clip polygon, unless asked not to...
     my $hlwx = UnratioX ($timing, $lw)/2;
@@ -1422,7 +1784,7 @@ sub RenderPolygon ($$$$$@) {
       $svg->polygon (
 	points => join (",", RenderXY ($timing, @cpt)),
 	style => {
-	  'fill' => ($ss =~ /$re_color/o) ? $ss : (($ss =~ /X./) ? $GRAY : $WHITE), # none or #rrggbb
+	  'fill'   => ($ss =~ /$re_color/o) ? $ss : (($ss =~ /[XW]./) ? $GRAY : $WHITE), # none or #rrggbb
 	  'stroke' => 'none',	# none or #rrggbb
 	}
 	  );
@@ -1434,12 +1796,14 @@ sub RenderPolygon ($$$$$@) {
 	$svg->polyline (
 	  points => join (",", RenderXY ($timing, @cpt[$f .. $t])),
 	  style => {
-	    'fill' => 'none',	 # none or #rrggbb
-	    'stroke' => ($ss =~ /$re_color/o) ? $ss : $BLACK, # none or #rrggbb
-	    'stroke-width' => RenderDX ($timing, $lw),
-	    'stroke-dasharray' => 'none',
-	    'stroke-linecap' => 'round',
-	    'stroke-linejoin' => 'round',
+	    'fill'              => 'none',	 # none or #rrggbb
+	    'stroke'            => ($ss =~ /$re_color/o) ? $ss : $BLACK, # none or #rrggbb
+	    'stroke-width'      => $dw,
+	    'stroke-dasharray'  => (($ss =~ /$re_ss_dash/o) ? "$da" : 'none'),
+	    'stroke-dashoffset' => '0',
+	    'stroke-miterlimit' => $dw,
+	    'stroke-linecap'    => 'round',
+	    'stroke-linejoin'   => 'round',
 	  } );
 	$i += $c;
       }
@@ -1451,12 +1815,14 @@ sub RenderPolygon ($$$$$@) {
       $svg->polygon (
 	points => join (",", RenderXY ($timing, @cpt)),
 	style => {
-	  'fill' => ($ss =~ /$re_color/o) ? $ss : (($ss =~ /X./) ? $GRAY : $WHITE), # none or #rrggbb
-	  'stroke' => ($lw ? (($ss =~ /$re_color/o) ? $ss : $BLACK) : 'none'), # none or #rrggbb
-	  'stroke-width' => RenderDX ($timing, $lw),
-	  'stroke-dasharray' => 'none',
-	  'stroke-linecap' => 'round',
-	  'stroke-linejoin' => 'round',
+	  'fill'              => ($ss =~ /$re_color/o) ? $ss : (($ss =~ /[XW]./) ? $GRAY : $WHITE), # none or #rrggbb
+	  'stroke'            => ($lw ? (($ss =~ /$re_color/o) ? $ss : $BLACK) : 'none'), # none or #rrggbb
+	  'stroke-width'      => $dw,
+	  'stroke-dasharray'  => (($ss =~ /$re_ss_dash/o) ? "$da" : 'none'),
+	  'stroke-dashoffset' => '0',
+	  'stroke-miterlimit' => $dw,
+	  'stroke-linecap'    => 'round',
+	  'stroke-linejoin'   => 'round',
 	}
 	  );
     }
@@ -1774,4 +2140,3 @@ sub DumpPoints ($$@) {
   my $pt = "[$x $y]";
   return  (@pt ? "$pt " . DumpPoints (@pt) : "$pt") if $DEBUG;
 }
-

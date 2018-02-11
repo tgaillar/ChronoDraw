@@ -1,0 +1,14 @@
+$RATIO = 10
+
+CLK~2@50% = 0
+
+.
+.
+CLK \<CLK-2>"e"
+CLK \\<CLK-2>"ee"
+CLK \\\<CLK-2>"eeee"
+CLK \\\\<CLK-2>"eeeeeeee"
+CLK \\\\\<CLK-2>"eeeeeeeeeeeeeeee"
+CLK \\\\\\<CLK-2>"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+CLK \\\\\\\<CLK-2>"abcdefghijklmnopqrstuvwxyz"
+CLK \\\\\\\\<CLK-2>"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"

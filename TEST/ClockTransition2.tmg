@@ -1,0 +1,45 @@
+#
+# Test pattern to check all possible clock break transitions
+#
+
+$RATIO = 2
+[-100%:100%]
+
+# Init
+#
+Title/"" : "Clock Break Transition"
+
+C1/""~2@50% = 
+CH/""~2@50% = 
+CX/""~2@50% = 
+CZ/""~2@50% = 
+CW/""~2@50% = 
+CL/""~2@50% = 
+C0/""~2@50% = 
+CT/""~2@50% = 
+
+# First Transition
+#
+!
+
+C1 = 1	
+CH = H	
+CX = X	
+CZ = Z	
+CW = W	
+CL = L	
+C0 = 0	
+CT = ""
+
+# Second Transition
+#
+!
+
+C1 = 
+CH = 
+CX = 
+CZ = 
+CW = 
+CL = 
+C0 = 
+CT = 

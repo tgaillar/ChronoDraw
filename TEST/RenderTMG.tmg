@@ -1,0 +1,186 @@
+#
+# Declaration & initial state
+#
+
+$RATIO = 1.0
+
+00 = 0
+0L = 0
+0Z = 0
+0W = 0
+0X = 0
+0H = 0
+01 = 0
+0T = 0
+
+SEP0/"" : ""
+
+L0 = L
+LL = L
+LZ = L
+LW = L
+LX = L
+LH = L
+L1 = L
+LT = L
+
+SEPH/"" : ""
+
+H0 = H
+HL = H
+HZ = H
+HW = H
+HX = H
+HH = H
+H1 = H
+HT = H
+
+SEP1/"" : ""
+
+10 = 1
+1L = 1
+1Z = 1
+1W = 1
+1X = 1
+1H = 1
+11 = 1
+1T = 1
+
+SEPZ/"" : ""
+
+Z0 = Z
+ZL = Z
+ZZ = Z
+ZW = Z
+ZX = Z
+ZH = Z
+Z1 = Z
+ZT = Z
+
+SEPX/"" : ""
+
+X0 = X
+XL = X
+XZ = X
+XW = X
+XX = X
+XH = X
+X1 = X
+XT = X
+
+SEPW/"" : ""
+
+W0 = W
+WL = W
+WZ = W
+WW = W
+WX = W
+WH = W
+W1 = W
+WT = W
+
+SEPT/"" : ""
+
+T0 = "T"
+TL = "T"
+TZ = "T"
+TW = "T"
+TX = "T"
+TH = "T"
+T1 = "T"
+TT = "T"
+
+.
+
+#
+# Transition
+#
+.
+
+00 = 0
+0L = L
+0Z = Z
+0W = W
+0X = X
+0H = H
+01 = 1
+0T = "T"
+
+#SEP
+
+L0 = 0
+LL = L
+LZ = Z
+LW = W
+LX = X
+LH = H
+L1 = 1
+LT = "T"
+
+#SEP
+
+H0 = 0
+HL = L
+HZ = Z
+HW = W
+HX = X
+HH = H
+H1 = 1
+HT = "T"
+
+#SEP
+
+10 = 0
+1L = L
+1Z = Z
+1W = W
+1X = X
+1H = H
+11 = 1
+1T = "T"
+
+#SEP
+
+Z0 = 0
+ZL = L
+ZZ = Z
+ZW = W
+ZX = X
+ZH = H
+Z1 = 1
+ZT = "T"
+
+#SEP
+
+X0 = 0
+XL = L
+XZ = Z
+XW = W
+XX = X
+XH = H
+X1 = 1
+XT = "T"
+
+#SEP
+
+W0 = 0
+WL = L
+WZ = Z
+WW = W
+WX = X
+WH = H
+W1 = 1
+WT = "T"
+
+#SEP
+
+T0 = 0
+TL = L
+TZ = Z
+TW = W
+TX = X
+TH = H
+T1 = 1
+TT = "T"
+
+.

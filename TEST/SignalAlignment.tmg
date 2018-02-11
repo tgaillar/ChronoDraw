@@ -1,0 +1,68 @@
+#
+# Test pattern to check all the possible signal text alignments
+#
+
+$RATIO = 2
+[-100%:100%]
+
+# Init
+#
+Title/"" : "Signal Text Alignment"
+
+SRl/"" = L
+SRn/"" = L
+SRb/"" = L
+SRr/"" = L
+
+Sep1/"" : ""
+
+SZl/"" = Z
+SZn/"" = Z
+SZb/"" = Z
+SZr/"" = Z
+
+Sep2/"" : ""
+
+SFl/"" = H
+SFn/"" = H
+SFb/"" = H
+SFr/"" = H
+
+# First Transition
+#
+.
+
+SRl = "<left"
+SRn = "center"
+SRb = "<center>"
+SRr = "right>"
+
+SZl = "<left"
+SZn = "center"
+SZb = "<center>"
+SZr = "right>"
+
+SFl = "<left"
+SFn = "center"
+SFb = "<center>"
+SFr = "right>"
+
+# Second Transition
+#
+.
+
+SRl = H
+SRn = H
+SRb = H
+SRr = H
+
+SZl = Z
+SZn = Z
+SZb = Z
+SZr = Z
+
+SFl = L
+SFn = L
+SFb = L
+SFr = L
+

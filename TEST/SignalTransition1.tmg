@@ -1,0 +1,49 @@
+#
+# Test pattern to check all possible signal break transitions
+#
+
+$RATIO = 2
+[-100%:100%]
+
+# Init
+#
+Title/"" : "Signal Break Transition"
+
+Sck/"01 * 1"~2@50% = 0
+S01/" 0 * 1" = 0
+Slh/" L * H" = L
+Szt/" Z * T" = Z
+Swx/" W * X" = W
+Sxw/" X * W" = X
+Stz/" T * Z" = ""
+Shl/" H * L" = H
+S10/"10 * 0" = 1
+
+# First Transition
+#
+!
+
+Sck = 
+S01 = 
+Slh = 
+Szt = 
+Swx = 
+Sxw = 
+Stz = 
+Shl = 
+S10 = 
+
+# Second Transition
+#
+!
+
+Sck = 1
+S01 = 1
+Slh = H
+Szt = ""
+Swx = X
+Sxw = W
+Stz = Z
+Shl = L
+S10 = 0
+

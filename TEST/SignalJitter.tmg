@@ -1,0 +1,65 @@
+#
+# Test pattern to check all possible signal jitter transitions
+#
+
+$RATIO = 2
+[-100%:100%]
+
+# Init
+#
+Title/"" : "Signal Jitter Transition"
+
+S01/"0/1"      = 0
+S01J/"0/1 (J)" = 0
+
+SEP1/"" :
+
+S101/"1\0/1"      = 1
+S101J/"1\0/1 (J)" = 1
+
+SEP2/"" :
+
+S1010/"1\0/1\0"      = 1
+S1010J/"1\0/1\0 (J)" = 1
+
+SEP3/"" :
+
+S1LH0/"1\L/H\0"      = 1
+S1LH0J/"1\L/H\0 (J)" = 1
+
+# First Transition
+#
+!
+S01  = 1+0%
+S01J = 1+0%:-25%*2+25%*3
+
+S101  = 0+0%
+S101J = 0+0%
+
+S1010  = 0+0%
+S1010J = 0+0%
+
+S1LH0  = L
+S1LH0J = L:-25%*2+25%*3
+
+# Second Transition
+#
+!
+S101  = 1+0%
+S101J = 1+0%:-25%*2+25%*3
+
+S1010  = 1+0%
+S1010J = 1+0%:-25%*2+25%*3
+
+S1LH0  = H
+S1LH0J = H:-25%*2+25%*3
+
+# Third Transition
+#
+!
+S1010  = 0+0%
+S1010J = 0+0%:-25%*2+25%*3
+
+S1LH0  = 0
+S1LH0J = 0:-25%*2+25%*3
+

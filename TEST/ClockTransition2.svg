@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg height="630" width="430" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<filter filterUnits="objectBoundingBox" height="100%" id="bgText" width="100%" x="0%" y="0%">
+		<feFlood flood-color="#FFFFFF" result="bg" />
+		<feMerge >
+			<feMergeNode in="bg" />
+			<feMergeNode in="SourceGraphic" />
+		</feMerge>
+	</filter>
+	<polygon points="0,0,430,0,430,630,0,630" style="stroke-linejoin: round; stroke-dasharray: none; stroke-width: 0; stroke-miterlimit: 0; stroke-linecap: round; fill: #FFFFFF; stroke: none; stroke-dashoffset: 0" />
+	<polyline points="150,70,150,629.5" style="stroke: #000000; stroke-dashoffset: 0; fill: none; stroke-miterlimit: 1; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: none; stroke-width: 1" />
+	<polyline points="290,70,290,629.5" style="stroke: #000000; stroke-dashoffset: 0; fill: none; stroke-linecap: round; stroke-miterlimit: 1; stroke-width: 1; stroke-dasharray: none; stroke-linejoin: round" />
+	<text style="font-family: Impact; font-size: 30; text-anchor: end" x="5.55111512312578e-15" y="45"></text>
+	<text style="font-family: Impact; font-size: 20; text-anchor: middle" x="220" y="41.6666666666667">Clock Break Transition</text>
+	<text style="font-size: 30; text-anchor: end; font-family: Impact" x="5.55111512312578e-15" y="115"></text>
+	<polyline points="150,84,290,84" style="stroke-miterlimit: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: none; stroke-width: 3; stroke-dashoffset: 0; stroke: #000000; fill: none" />
+	<text style="text-anchor: end; font-size: 30; font-family: Impact" x="5.55111512312578e-15" y="185"></text>
+	<polyline points="150,154,290,154" style="stroke: #000000; stroke-dashoffset: 0; fill: none; stroke-miterlimit: 3; stroke-linecap: round; stroke-dasharray: 3, 6; stroke-width: 3; stroke-linejoin: round" />
+	<text style="font-size: 30; text-anchor: end; font-family: Impact" x="5.55111512312578e-15" y="255"></text>
+	<polygon points="157,224,150,245,157,266,283,266,290,245,283,224,157,224" style="stroke-linecap: round; stroke-miterlimit: 3; stroke-linejoin: round; stroke-dasharray: none; stroke-width: 3; stroke: #000000; stroke-dashoffset: 0; fill: #D3D3D3" />
+	<text style="font-size: 30; text-anchor: end; font-family: Impact" x="5.55111512312578e-15" y="325"></text>
+	<polyline points="150,315,290,315" style="stroke-miterlimit: 3; stroke-linecap: round; stroke-width: 3; stroke-dasharray: 3, 6; stroke-linejoin: round; stroke: #000000; stroke-dashoffset: 0; fill: none" />
+	<text style="font-size: 30; text-anchor: end; font-family: Impact" x="5.55111512312578e-15" y="395"></text>
+	<polygon points="157,364,150,385,157,406,283,406,290,385,283,364,157,364" style="stroke-linecap: round; stroke-miterlimit: 3; stroke-width: 3; stroke-linejoin: round; stroke-dasharray: 3, 6; stroke: #000000; stroke-dashoffset: 0; fill: #D3D3D3" />
+	<text style="text-anchor: end; font-size: 30; font-family: Impact" x="5.55111512312578e-15" y="465"></text>
+	<polyline points="150,476,290,476" style="stroke-linecap: round; stroke-miterlimit: 3; stroke-dasharray: 3, 6; stroke-linejoin: round; stroke-width: 3; stroke-dashoffset: 0; stroke: #000000; fill: none" />
+	<text style="font-family: Impact; text-anchor: end; font-size: 30" x="5.55111512312578e-15" y="535"></text>
+	<polyline points="150,546,290,546" style="stroke-dashoffset: 0; stroke: #000000; fill: none; stroke-miterlimit: 3; stroke-linecap: round; stroke-width: 3; stroke-linejoin: round; stroke-dasharray: none" />
+	<text style="font-family: Impact; font-size: 30; text-anchor: end" x="5.55111512312578e-15" y="605"></text>
+	<polygon points="157,574,150,595,157,616,283,616,290,595,283,574,157,574" style="stroke-linecap: round; stroke-miterlimit: 3; stroke-width: 3; stroke-linejoin: round; stroke-dasharray: none; stroke-dashoffset: 0; stroke: #000000; fill: #FFFFFF" />
+	<!-- 
+	Generated using the Perl SVG Module V2.50
+	by Ronan Oger
+	Info: http://www.roitsystems.com/
+ -->
+</svg>
